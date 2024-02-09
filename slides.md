@@ -94,16 +94,19 @@ layout: center
 </div>
 
 ---
+transition: slide-left
+layout: center
+---
+
+# Analyze Overview
+
+---
 layout: default
 ---
 
-# Table of contents
+# Analyze Statement
 
-```html
-<Toc minDepth="1" maxDepth="1"></Toc>
-```
-
-<Toc maxDepth="1"></Toc>
+<img src="/analyze.svg" />
 
 ---
 transition: slide-up
