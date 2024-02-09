@@ -1,32 +1,37 @@
 ---
 theme: seriph
-background: https://source.unsplash.com/collection/94734566/1920x1080
+background: https://github.com/pingcap/tidb/assets/29879298/b565d5ea-902a-4082-b7b7-1ebce80ba029
 class: text-center
 highlighter: shiki
 lineNumbers: false
 info: |
-  ## Slidev Starter Template
-  Presentation slides for developers.
+  ## TiDB Analyze
+  Analyze collects statistics for the optimizer to generate better query plans.
 
-  Learn more at [Sli.dev](https://sli.dev)
+  Learn more at [TiDB](https://docs.pingcap.com/tidb/stable/sql-statement-analyze-table)
 drawings:
   persist: false
 defaults:
   foo: true
 transition: slide-left
-title: Welcome to Slidev
+title: TiDB Analyze
 mdc: true
 ---
 
-# Welcome to Slidev
+# TiDB Analyze
 
-Presentation slides for developers
+A Deep Dive
+
+Based on TiDB [v7.6.0](https://github.com/pingcap/tidb/tree/v7.6.0)
+
+RUSTIN LIU
 
 <div class="pt-12">
   <span @click="$slidev.nav.next" class="px-2 py-1 rounded cursor-pointer" hover="bg-white bg-opacity-10">
-    Press Space for next page <carbon:arrow-right class="inline"/>
+    Begin <carbon:arrow-right class="inline"/>
   </span>
 </div>
+
 
 <div class="abs-br m-6 flex gap-2">
   <button @click="$slidev.nav.openInEditor()" title="Open in Editor" class="text-xl slidev-icon-btn opacity-50 !border-none !hover:text-white">
