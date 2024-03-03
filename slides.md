@@ -109,4 +109,19 @@ layout: default
 
 <img src="/analyze.svg" />
 
+---
+transition: slide-up
+---
 
+# Data Flow
+
+<br/>
+
+```plantuml {scale: 0.9}
+@startuml
+
+skinparam monochrome reverse
+
+"TiDB Client" as TC -> TiDB: execute analyze statement
+@enduml
+```
