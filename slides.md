@@ -137,6 +137,9 @@ ANALYZE TABLE t PARTITION p1 INDEX idx1, idx2;
 
 -- Analyze Predicate Columns
 ANALYZE TABLE t PREDICATE COLUMNS;
+
+-- Analyze With Only 20 Top N
+ANALYZE TABLE t COLUMNS c1, c2 WITH 20 TOPN;
 ```
 
 ---
