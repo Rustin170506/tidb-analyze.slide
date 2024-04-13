@@ -150,11 +150,16 @@ transition: slide-up
 
 <br/>
 
-```plantuml {scale: 0.9}
+```plantuml
 @startuml
 
 skinparam monochrome reverse
 
-"TiDB Client" as TC -> TiDB: execute analyze statement
+"TiDB Owner/Client" as TC -> TiDB: execute analyze statement
+TiDB -> TiKV: send analyze gRPC request
+TiKV -> TiKV: collect statistics
+TiKV --> TiDB: send analyze gRPC response
+TiDB -> TiDB: update statistics to system tables
+TiDB --> TC: return success
 @enduml
 ```
