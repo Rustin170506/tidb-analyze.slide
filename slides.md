@@ -143,12 +143,41 @@ ANALYZE TABLE t COLUMNS c1, c2 WITH 20 TOPN;
 ```
 
 ---
+transition: slide-left
+---
+
+# Analyze Options
+
+<div class="flex flex-col justify-center items-center h-50">
+<p>
+ANALYZE TABLE t PARTITION p1 <span v-mark.circle.orange>COLUMNS c1, c2</span>;
+</p>
+<p>
+ANALYZE TABLE t COLUMNS c1, c2 <span v-mark.circle.orange>WITH 20 TOPN</span>;
+</p>
+</div>
+
+<div v-click class="text-xl text-center">
+We will store these options in the system tables.
+In the future, we can use these options to optimize the analyze process.
+</div>
+
+<br/>
+<br/>
+
+<div v-click class="text-xl text-center">
+<span v-mark="{ at: 4, color: 'orange', type: 'underline' }">ANALYZE TABLE t;</span>
+</div>
+
+---
 transition: slide-up
 ---
 
 # Data Flow
 
 <br/>
+
+<div class="flex justify-center items-center">
 
 ```plantuml
 @startuml
@@ -163,3 +192,4 @@ TiDB -> TiDB: update statistics to system tables
 TiDB --> TC: return success
 @enduml
 ```
+</div>
