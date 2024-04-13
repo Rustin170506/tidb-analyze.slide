@@ -87,7 +87,7 @@ layout: center
   <div class="border-l border-gray-400 border-opacity-25 !all:leading-12 !all:list-none my-auto">
 
   - Analyze Overview
-  - Data Structure & Data Flow
+  - Data Structure & Data Flow (TiKV Perspective)
   - Q&A
 
   </div>
@@ -108,6 +108,36 @@ layout: default
 # Analyze Statement
 
 <img src="/analyze.svg" />
+
+---
+transition: slide-left
+---
+
+# Analyze Statement
+
+
+```sql
+-- Analyze Tables
+ANALYZE TABLE t1, t2;
+
+-- Analyze Partitions
+ANALYZE TABLE t PARTITION p1, p2;
+
+-- Analyze Columns
+ANALYZE TABLE t COLUMNS c1, c2;
+
+-- Analyze Indexes
+ANALYZE TABLE t INDEX idx1, idx2;
+
+-- Analyze Partitions' Columns
+ANALYZE TABLE t PARTITION p1 COLUMNS c1, c2;
+
+-- Analyze Partitions' Indexes
+ANALYZE TABLE t PARTITION p1 INDEX idx1, idx2;
+
+-- Analyze Predicate Columns
+ANALYZE TABLE t PREDICATE COLUMNS;
+```
 
 ---
 transition: slide-up
