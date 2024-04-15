@@ -16,6 +16,7 @@ defaults:
 transition: slide-left
 title: TiDB Analyze
 mdc: true
+colorSchema: dark
 ---
 
 # TiDB Analyze
@@ -88,6 +89,7 @@ layout: center
 
   - Analyze Overview
   - Data Structure & Data Flow (TiKV Perspective)
+  - Data Structure & Data Flow (TiDB Perspective)
   - Q&A
 
   </div>
