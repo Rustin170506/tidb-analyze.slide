@@ -202,5 +202,26 @@ transition: slide-up
 
 # Protocol Buffers
 
+It is similar to a SELECT statement.
+
+## Request
 ```proto
+message Request {
+    kvrpcpb.Context context = 1;
+    int64 tp = 2;
+    bytes data = 3;
+    uint64 start_ts = 7;
+    repeated KeyRange ranges = 4;
+}
+```
+
+## Response
+```proto
+message Response {
+    bytes data = 1;
+    errorpb.Error region_error = 2;
+    kvrpcpb.LockInfo locked = 3;
+    string other_error = 4;
+    KeyRange range = 5;
+}
 ```
