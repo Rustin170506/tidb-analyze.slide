@@ -200,11 +200,11 @@ TiDB --> TC: return success
 transition: slide-up
 ---
 
-# Protocol Buffers
-
-It is similar to a SELECT statement.
+# Protocol Buffers - kvproto
+It is similar to a SELECT statement. We send a coprocessor request to TiKV to collect statistics.
 
 ## Request
+
 ```proto
 message Request {
     kvrpcpb.Context context = 1;
@@ -216,6 +216,7 @@ message Request {
 ```
 
 ## Response
+
 ```proto
 message Response {
     bytes data = 1;
@@ -223,5 +224,89 @@ message Response {
     kvrpcpb.LockInfo locked = 3;
     string other_error = 4;
     KeyRange range = 5;
+}
+```
+
+---
+transition: slide-up
+---
+
+# Protocol Buffers - tipb
+
+## Request
+
+```proto
+enum AnalyzeType {
+    TypeIndex = 0;
+    TypeColumn = 1;
+    TypeCommonHandle = 2;
+    TypeSampleIndex = 3;
+    TypeMixed = 4;
+    TypeFullSampling = 5;
+}
+
+message AnalyzeReq {
+    optional AnalyzeType tp = 1;
+    optional uint64 flags = 3;
+    optional int64 time_zone_offset = 4;
+    optional AnalyzeIndexReq idx_req = 5;
+    optional AnalyzeColumnsReq col_req = 6;
+}
+```
+
+---
+transition: slide-up
+---
+
+# Protocol Buffers - AnalyzeColumnsReq
+
+## Request
+
+```proto
+message AnalyzeColumnsReq {
+    optional int64 bucket_size = 1;
+    optional int64 sample_size = 2;
+    optional int64 sketch_size = 3;
+    repeated ColumnInfo columns_info = 4;
+    optional int32 cmsketch_depth = 5;
+    optional int32 cmsketch_width = 6;
+    repeated int64 primary_column_ids = 7;
+    optional int32 version = 8;
+    repeated int64 primary_prefix_column_ids = 9;
+    repeated AnalyzeColumnGroup column_groups = 10;
+    optional double sample_rate = 11;
+}
+```
+
+---
+transition: slide-up
+---
+
+# Protocol Buffers - AnalyzeColumnsResp
+
+## Response
+
+```proto
+message SampleCollector {
+    repeated bytes samples = 1;
+    optional int64 null_count = 2;
+    optional int64 count = 3;
+    optional FMSketch fm_sketch = 4;
+    optional CMSketch cm_sketch = 5;
+    optional int64 total_size = 6;
+}
+
+message RowSampleCollector {
+    repeated RowSample samples = 1;
+    repeated int64 null_counts = 2;
+    optional int64 count = 3;
+    repeated FMSketch fm_sketch = 4;
+    repeated int64 total_size = 5;
+}
+
+message AnalyzeColumnsResp {
+    repeated SampleCollector collectors = 1;
+    optional Histogram pk_hist = 2;
+    optional RowSampleCollector row_collector = 3;
 }
 ```
