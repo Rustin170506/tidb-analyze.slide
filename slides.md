@@ -185,7 +185,7 @@ use test;
 create table t (a int);
 ```
 Insert 2000 rows
-```ts{all|12}
+```ts{all|12-16}
 import { Client } from "https://deno.land/x/mysql/mod.ts";
 
 const client = await new Client().connect({
@@ -198,6 +198,9 @@ const client = await new Client().connect({
 
 for (let i = 0; i < 2000; i++) {
   await client.execute(`INSERT INTO t (a) VALUES (?)`, [i]);
+  if (i % 2 === 0) {
+    await client.execute(`INSERT INTO t (a) VALUES (?)`, [i]);
+  }
 }
 
 await client.close();
@@ -218,11 +221,12 @@ select * from mysql.stats_top_n limit 5;
 
 | table\_id | is\_index | hist\_id | value                | count |
 |:----------|:----------|:---------|:---------------------|:------|
-| 104       | 0         | 1        | 0x0380000000000001F3 | 1     |
-| 104       | 0         | 1        | 0x0380000000000001F2 | 1     |
-| 104       | 0         | 1        | 0x0380000000000001F1 | 1     |
-| 104       | 0         | 1        | 0x0380000000000001F0 | 1     |
-| 104       | 0         | 1        | 0x0380000000000001EF | 1     |
+| 104       | 0         | 1        | 0x0380000000000003E6 | 2     |
+| 104       | 0         | 1        | 0x0380000000000003E4 | 2     |
+| 104       | 0         | 1        | 0x0380000000000003E2 | 2     |
+| 104       | 0         | 1        | 0x0380000000000003E0 | 2     |
+| 104       | 0         | 1        | 0x0380000000000003DE | 2     |
+
 
 ---
 transition: slide-up
@@ -237,9 +241,27 @@ explain select * from t where a = 100;
 
 | id                 | estRows | task        | access object | operator info       |
 |:-------------------|:--------|:------------|:--------------|:--------------------|
-| TableReader\_7     | 1.00    | root        |               | data:Selection\_6   |
-| └─Selection\_6     | 1.00    | cop\[tikv\] |               | eq\(test.t.a, 100\) |
-| └─TableFullScan\_5 | 2000.00 | cop\[tikv\] | table:t       | keep order:false    |
+| TableReader\_7     | 2.00    | root        |               | data:Selection\_6   |
+| └─Selection\_6     | 2.00    | cop\[tikv\] |               | eq\(test.t.a, 100\) |
+| └─TableFullScan\_5 | 3000.00 | cop\[tikv\] | table:t       | keep order:false    |
+
+---
+transition: slide-up
+---
+
+# Data Structure Overview
+Selectivity
+
+```sql
+explain select * from t where a = 101;
+```
+
+| id                 | estRows | task        | access object | operator info       |
+|:-------------------|:--------|:------------|:--------------|:--------------------|
+| TableReader\_7     | 1.33    | root        |               | data:Selection\_6   |
+| └─Selection\_6     | 1.33    | cop\[tikv\] |               | eq\(test.t.a, 101\) |
+| └─TableFullScan\_5 | 3000.00 | cop\[tikv\] | table:t       | keep order:false    |
+
 
 
 ---
