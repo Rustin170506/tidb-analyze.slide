@@ -177,13 +177,14 @@ transition: slide-up
 ---
 
 # Data Structure Overview
+A simple example.
 
-Create a table and insert some data.
+Create table
 ```sql{all|2}
 use test;
 create table t (a int);
 ```
-
+Insert 2000 rows
 ```ts{all|12}
 import { Client } from "https://deno.land/x/mysql/mod.ts";
 
@@ -222,6 +223,24 @@ select * from mysql.stats_top_n limit 5;
 | 104       | 0         | 1        | 0x0380000000000001F1 | 1     |
 | 104       | 0         | 1        | 0x0380000000000001F0 | 1     |
 | 104       | 0         | 1        | 0x0380000000000001EF | 1     |
+
+---
+transition: slide-up
+---
+
+# Data Structure Overview
+Selectivity
+
+```sql
+explain select * from t where a = 100;
+```
+
+| id                 | estRows | task        | access object | operator info       |
+|:-------------------|:--------|:------------|:--------------|:--------------------|
+| TableReader\_7     | 1.00    | root        |               | data:Selection\_6   |
+| └─Selection\_6     | 1.00    | cop\[tikv\] |               | eq\(test.t.a, 100\) |
+| └─TableFullScan\_5 | 2000.00 | cop\[tikv\] | table:t       | keep order:false    |
+
 
 ---
 transition: slide-up
