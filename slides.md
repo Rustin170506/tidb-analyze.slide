@@ -88,6 +88,7 @@ layout: center
   <div class="border-l border-gray-400 border-opacity-25 !all:leading-12 !all:list-none my-auto">
 
   - Analyze Overview
+  - Data Structure Overview
   - Data Structure & Data Flow (TiKV Perspective)
   - Data Structure & Data Flow (TiDB Perspective)
   - Q&A
@@ -170,6 +171,57 @@ In the future, we can use these options to optimize the analyze process.
 <div v-click class="text-xl text-center">
 <span v-mark="{ at: 4, color: 'orange', type: 'underline' }">ANALYZE TABLE t;</span>
 </div>
+
+---
+transition: slide-up
+---
+
+# Data Structure Overview
+
+Create a table and insert some data.
+```sql{all|2}
+use test;
+create table t (a int);
+```
+
+```ts{all|12}
+import { Client } from "https://deno.land/x/mysql/mod.ts";
+
+const client = await new Client().connect({
+  hostname: "127.0.0.1",
+  port: 4000,
+  username: "root",
+  db: "test",
+  password: "",
+});
+
+for (let i = 0; i < 2000; i++) {
+  await client.execute(`INSERT INTO t (a) VALUES (?)`, [i]);
+}
+
+await client.close();
+```
+
+---
+transition: slide-up
+---
+
+# Data Structure Overview
+Wait for a while and then execute the analyze statement.
+
+TopN
+
+```sql
+select * from mysql.stats_top_n limit 5;
+```
+
+| table\_id | is\_index | hist\_id | value                | count |
+|:----------|:----------|:---------|:---------------------|:------|
+| 104       | 0         | 1        | 0x0380000000000001F3 | 1     |
+| 104       | 0         | 1        | 0x0380000000000001F2 | 1     |
+| 104       | 0         | 1        | 0x0380000000000001F1 | 1     |
+| 104       | 0         | 1        | 0x0380000000000001F0 | 1     |
+| 104       | 0         | 1        | 0x0380000000000001EF | 1     |
 
 ---
 transition: slide-up
@@ -308,5 +360,26 @@ message AnalyzeColumnsResp {
     repeated SampleCollector collectors = 1;
     optional Histogram pk_hist = 2;
     optional RowSampleCollector row_collector = 3;
+}
+```
+
+---
+transition: slide-up
+---
+
+# Data Structure - Histogram
+
+```proto
+message Bucket {
+    optional int64 count = 1
+    optional bytes lower_bound = 2;
+    optional bytes upper_bound = 3;
+    optional int64 repeats = 4;
+    optional int64 ndv = 5;
+}
+
+message Histogram {
+    optional int64 ndv = 1;
+    repeated Bucket buckets = 2;
 }
 ```
