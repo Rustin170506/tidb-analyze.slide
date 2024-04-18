@@ -185,16 +185,10 @@ use test;
 create table t (a int);
 ```
 Insert 2000 rows
-```ts{all|12-16}
+```ts{all|6-9}
 import { Client } from "https://deno.land/x/mysql/mod.ts";
 
-const client = await new Client().connect({
-  hostname: "127.0.0.1",
-  port: 4000,
-  username: "root",
-  db: "test",
-  password: "",
-});
+const client = await new Client().connect({...});
 
 for (let i = 0; i < 2000; i++) {
   await client.execute(`INSERT INTO t (a) VALUES (?)`, [i]);
@@ -219,13 +213,13 @@ TopN
 select * from mysql.stats_top_n limit 5;
 ```
 
-| table\_id | is\_index | hist\_id | value                | count |
-|:----------|:----------|:---------|:---------------------|:------|
-| 104       | 0         | 1        | 0x0380000000000003E6 | 2     |
-| 104       | 0         | 1        | 0x0380000000000003E4 | 2     |
-| 104       | 0         | 1        | 0x0380000000000003E2 | 2     |
-| 104       | 0         | 1        | 0x0380000000000003E0 | 2     |
-| 104       | 0         | 1        | 0x0380000000000003DE | 2     |
+| table\_id | is\_index | hist\_id | value                                                                                                                                                                             | count |
+|:----------|:----------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:------|
+| 104       | 0         | 1        | <span class="text-green-500" v-mark="{ color: 'green', type: 'circle' }">0x038</span>00000000000<span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }" >03E6</span> | 2     |
+| 104       | 0         | 1        | 0x0380000000000003E4                                                                                                                                                              | 2     |
+| 104       | 0         | 1        | 0x0380000000000003E2                                                                                                                                                              | 2     |
+| 104       | 0         | 1        | 0x0380000000000003E0                                                                                                                                                              | 2     |
+| 104       | 0         | 1        | 0x0380000000000003DE                                                                                                                                                              | 2     |
 
 
 ---
@@ -233,36 +227,80 @@ transition: slide-up
 ---
 
 # Data Structure Overview
-Selectivity
+Column Selectivity
 
 ```sql
 explain select * from t where a = 100;
 ```
 
-| id                 | estRows | task        | access object | operator info       |
-|:-------------------|:--------|:------------|:--------------|:--------------------|
-| TableReader\_7     | 2.00    | root        |               | data:Selection\_6   |
-| └─Selection\_6     | 2.00    | cop\[tikv\] |               | eq\(test.t.a, 100\) |
-| └─TableFullScan\_5 | 3000.00 | cop\[tikv\] | table:t       | keep order:false    |
+| id                 | estRows                                                                              | task        | access object | operator info       |
+|:-------------------|:-------------------------------------------------------------------------------------|:------------|:--------------|:--------------------|
+| TableReader\_7     | 2.00                                                                                 | root        |               | data:Selection\_6   |
+| └─Selection\_6     | <span class="text-green-500" v-mark="{ color: 'green', type: 'circle' }">2.00</span> | cop\[tikv\] |               | eq\(test.t.a, 100\) |
+| └─TableFullScan\_5 | 3000.00                                                                              | cop\[tikv\] | table:t       | keep order:false    |
 
 ---
 transition: slide-up
 ---
 
 # Data Structure Overview
-Selectivity
+Column Selectivity
 
 ```sql
 explain select * from t where a = 101;
 ```
 
-| id                 | estRows | task        | access object | operator info       |
-|:-------------------|:--------|:------------|:--------------|:--------------------|
-| TableReader\_7     | 1.33    | root        |               | data:Selection\_6   |
-| └─Selection\_6     | 1.33    | cop\[tikv\] |               | eq\(test.t.a, 101\) |
-| └─TableFullScan\_5 | 3000.00 | cop\[tikv\] | table:t       | keep order:false    |
+| id                 | estRows                                                                            | task        | access object | operator info       |
+|:-------------------|:-----------------------------------------------------------------------------------|:------------|:--------------|:--------------------|
+| TableReader\_7     | 1.33                                                                               | root        |               | data:Selection\_6   |
+| └─Selection\_6     | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">1.33</span> | cop\[tikv\] |               | eq\(test.t.a, 101\) |
+| └─TableFullScan\_5 | 3000.00                                                                            | cop\[tikv\] | table:t       | keep order:false    |
 
+---
+transition: slide-up
+---
 
+# Data Structure Overview
+Column Selectivity
+
+```sql
+select hist_id, bucket_id, count, repeats,
+       CAST(lower_bound AS SIGNED) AS lower_bound,
+       CAST(upper_bound AS SIGNED) AS upper_bound,
+       ndv
+from mysql.stats_buckets order by lower_bound limit 5;
+```
+
+| hist\_id | bucket\_id | count                                                                         | repeats | lower\_bound                                                                  | upper\_bound                                                                   | ndv |
+|:---------|:-----------|:------------------------------------------------------------------------------|:--------|:------------------------------------------------------------------------------|:-------------------------------------------------------------------------------|:----|
+| 1        | 0          | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">8</span> | 1       | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">1</span> | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">15</span> | 0   |
+| 1        | 1          | 8                                                                             | 1       | 17                                                                            | 31                                                                             | 0   |
+| 1        | 2          | 8                                                                             | 1       | 33                                                                            | 47                                                                             | 0   |
+| 1        | 3          | 8                                                                             | 1       | 49                                                                            | 63                                                                             | 0   |
+| 1        | 4          | 8                                                                             | 1       | 65                                                                            | 79                                                                             | 0   |
+
+---
+transition: slide-up
+---
+
+# Data Structure Overview
+Column Selectivity
+
+```sql
+select hist_id, bucket_id, count, repeats,
+       CAST(lower_bound AS SIGNED) AS lower_bound,
+       CAST(upper_bound AS SIGNED) AS upper_bound,
+       ndv
+from mysql.stats_buckets order by lower_bound desc limit 5;
+```
+
+| hist\_id | bucket\_id | count                                                                         | repeats                                                                       | lower\_bound                                                                     | upper\_bound                                                                     | ndv |
+|:---------|:-----------|:------------------------------------------------------------------------------|:------------------------------------------------------------------------------|:---------------------------------------------------------------------------------|:---------------------------------------------------------------------------------|:----|
+| 1        | 229        | 1                                                                             | 1                                                                             | 1999                                                                             | 1999                                                                             | 0   |
+| 1        | 228        | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">9</span> | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">2</span> | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">1993</span> | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">1998</span> | 0   |
+| 1        | 227        | 9                                                                             | 2                                                                             | 1987                                                                             | 1992                                                                             | 0   |
+| 1        | 226        | 9                                                                             | 2                                                                             | 1981                                                                             | 1986                                                                             | 0   |
+| 1        | 225        | 9                                                                             | 2                                                                             | 1975                                                                             | 1980                                                                             | 0   |
 
 ---
 transition: slide-up
