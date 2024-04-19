@@ -306,6 +306,14 @@ from mysql.stats_buckets order by lower_bound desc limit 5;
 transition: slide-up
 ---
 
+# Data Structure
+
+<Histogram/>
+
+---
+transition: slide-up
+---
+
 # Data Flow
 
 <br/>

@@ -17,6 +17,9 @@ dependencies:
   '@slidev/theme-seriph':
     specifier: latest
     version: 0.25.0
+  chart.js:
+    specifier: ^4.4.2
+    version: 4.4.2
   vue:
     specifier: ^3.4.21
     version: 3.4.21(typescript@5.4.5)
@@ -683,6 +686,10 @@ packages:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.4.15
+    dev: false
+
+  /@kurkle/color@0.3.2:
+    resolution: {integrity: sha512-fuscdXJ9G1qb7W8VdHi+IwRqij3lBkosAm4ydQtEmbY58OzHXqQhvlxqEkoz0yssNVn38bcpRWgA9PP+OGoisw==}
     dev: false
 
   /@leichtgewicht/ip-codec@2.0.5:
@@ -2018,6 +2025,13 @@ packages:
 
   /character-entities@2.0.2:
     resolution: {integrity: sha512-shx7oQ0Awen/BRIdkjkvz54PnEEI/EjwXDSIZp86/KKdbafHh1Df/RYGBhn4hbe2+uKC9FnT5UCEdyPz3ai9hQ==}
+    dev: false
+
+  /chart.js@4.4.2:
+    resolution: {integrity: sha512-6GD7iKwFpP5kbSD4MeRRRlTnQvxfQREy36uEtm1hzHzcOqwWx0YEHuspuoNlslu+nciLIB7fjjsHkUv/FzFcOg==}
+    engines: {pnpm: '>=8'}
+    dependencies:
+      '@kurkle/color': 0.3.2
     dev: false
 
   /chokidar@3.6.0:
