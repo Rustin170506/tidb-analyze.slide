@@ -313,6 +313,41 @@ transition: slide-up
 ---
 transition: slide-up
 ---
+# Data Structure
+Histogram Bucket
+
+- Bucket ID: The bucket ID of the histogram.
+- Count: The number of rows in the bucket.
+- Repeats: The number of repeated values in the bucket.
+- Lower Bound: The lower bound of the bucket.
+- Upper Bound: The upper bound of the bucket.
+- NDV: The number of distinct values in the bucket.
+
+````md magic-move
+```json
+{
+    "bucket_id": 116,
+    "count": 9,
+    "repeats": 2,
+    "lower_bound": 1321,
+    "upper_bound": 1326,
+    "ndv": 0
+}
+```
+
+
+```json
+{
+    "bucket_id": 116,
+    "count": [1321, 1322, 1322, 1323, 1323, 1324, 1324, 1325, 1326],
+    "repeats": [1322, 1324],
+}
+```
+````
+
+---
+transition: slide-up
+---
 
 # Data Flow
 
