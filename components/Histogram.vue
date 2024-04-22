@@ -5,47 +5,85 @@
 </template>
 
 <script setup lang="ts">
-import { Chart, registerables } from 'chart.js';
-Chart.register(...registerables);
+import { Chart, registerables } from "chart.js";
+import { onMounted, ref } from "vue";
+// @ts-ignore
+import histogramData from "./histogram.json";
 
-import { onMounted, ref } from 'vue';
+Chart.register(...registerables);
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 
 onMounted(() => {
   const canvas = canvasRef.value;
   if (!canvas) {
-    console.error('Canvas element not found');
+    console.error("Canvas element not found");
     return;
   }
 
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext("2d");
   if (!ctx) {
-    console.error('Failed to get 2D context for canvas');
+    console.error("Failed to get 2D context for canvas");
     return;
   }
-
-  const data = Array.from({ length: 1000 }, () => Math.random() * 100);
-  const numBins = 20;
 
   new Chart(ctx, {
-    type: 'bar',
+    type: "bar",
     data: {
-      labels: Array.from({ length: numBins }, (_, i) => `Bin ${i + 1}`),
-      datasets: [{
-        data,
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        borderColor: 'rgba(75, 192, 192, 1)',
-        borderWidth: 1
-      }]
+      labels: histogramData.map((item) => item.lower_bound),
+      datasets: [
+        {
+          data: histogramData.map((item) => item.count),
+          borderColor: "white",
+          borderWidth: 1,
+        },
+      ],
     },
     options: {
       scales: {
         y: {
-          beginAtZero: true
-        }
-      }
-    }
+          beginAtZero: true,
+          ticks: {
+            color: "white",
+          },
+        },
+        x: {
+          ticks: {
+            color: "white",
+          },
+        },
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            title: function () {
+              return "Histogram Bucket";
+            },
+            label: function (context) {
+              const item = histogramData[context.dataIndex];
+              return `ID: ${item.bucket_id}, Count: ${item.count}`;
+            },
+            afterBody: function (context) {
+              const index = context[0].dataIndex;
+              const item = histogramData[index];
+              return [
+                `LowerBound: ${item.lower_bound}`,
+                `UpperBound: ${item.upper_bound}`,
+                `Repeats: ${item.repeats}`,
+              ];
+            },
+          },
+        },
+        title: {
+          display: true,
+          text: "Histogram",
+          color: "white",
+        },
+        legend: {
+          display: false,
+        },
+      },
+    },
   });
 });
 </script>
