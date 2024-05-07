@@ -162,7 +162,7 @@ ANALYZE TABLE t COLUMNS c1, c2 <span v-mark.circle.orange>WITH 20 TOPN</span>;
 
 <div v-click class="text-xl text-center">
 We will store these options in the system tables.
-In the future, we can use these options to optimize the analyze process.
+In the future, we can use these options to optimize the auto-analyze process.
 </div>
 
 <br/>
@@ -210,17 +210,16 @@ Wait for a while and then execute the analyze statement.
 TopN
 
 ```sql
-select * from mysql.stats_top_n limit 5;
+select * from mysql.stats_top_n order by value limit 5;
 ```
 
 | table\_id | is\_index | hist\_id | value                                                                                                                                                                             | count |
-|:----------|:----------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:------|
-| 104       | 0         | 1        | <span class="text-green-500" v-mark="{ color: 'green', type: 'circle' }">0x038</span>00000000000<span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }" >03E6</span> | 2     |
-| 104       | 0         | 1        | 0x0380000000000003E4                                                                                                                                                              | 2     |
-| 104       | 0         | 1        | 0x0380000000000003E2                                                                                                                                                              | 2     |
-| 104       | 0         | 1        | 0x0380000000000003E0                                                                                                                                                              | 2     |
-| 104       | 0         | 1        | 0x0380000000000003DE                                                                                                                                                              | 2     |
-
+| :-------- | :-------- | :------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---- |
+| 106       | 0         | 1        | <span class="text-green-500" v-mark="{ color: 'green', type: 'circle' }">0x038</span>00000000000<span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }" >0000</span> | 2     |
+| 106       | 0         | 1        | 0x038000000000000002                                                                                                                                                              | 2     |
+| 106       | 0         | 1        | 0x038000000000000004                                                                                                                                                              | 2     |
+| 106       | 0         | 1        | 0x038000000000000006                                                                                                                                                              | 2     |
+| 106       | 0         | 1        | 0x038000000000000008                                                                                                                                                              | 2     |
 
 ---
 transition: slide-up
@@ -234,7 +233,7 @@ explain select * from t where a = 100;
 ```
 
 | id                 | estRows                                                                              | task        | access object | operator info       |
-|:-------------------|:-------------------------------------------------------------------------------------|:------------|:--------------|:--------------------|
+| :----------------- | :----------------------------------------------------------------------------------- | :---------- | :------------ | :------------------ |
 | TableReader\_7     | 2.00                                                                                 | root        |               | data:Selection\_6   |
 | └─Selection\_6     | <span class="text-green-500" v-mark="{ color: 'green', type: 'circle' }">2.00</span> | cop\[tikv\] |               | eq\(test.t.a, 100\) |
 | └─TableFullScan\_5 | 3000.00                                                                              | cop\[tikv\] | table:t       | keep order:false    |
@@ -247,15 +246,14 @@ transition: slide-up
 Column Selectivity
 
 ```sql
-explain select * from t where a = 101;
+explain select * from t where a = 1999;
 ```
 
-| id                 | estRows                                                                            | task        | access object | operator info       |
-|:-------------------|:-----------------------------------------------------------------------------------|:------------|:--------------|:--------------------|
-| TableReader\_7     | 1.33                                                                               | root        |               | data:Selection\_6   |
-| └─Selection\_6     | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">1.33</span> | cop\[tikv\] |               | eq\(test.t.a, 101\) |
-| └─TableFullScan\_5 | 3000.00                                                                            | cop\[tikv\] | table:t       | keep order:false    |
-
+| id                 | estRows                                                                          | task        | access object | operator info        |
+| :----------------- | :------------------------------------------------------------------------------- | :---------- | :------------ | :------------------- |
+| TableReader\_7     | 1.00                                                                             | root        |               | data:Selection\_6    |
+| └─Selection\_6     | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">1.00</span> | cop\[tikv\] |               | eq\(test.t.a, 1999\) |
+| └─TableFullScan\_5 | 3000.00                                                                          | cop\[tikv\] | table:t       | keep order:false     |
 ---
 transition: slide-up
 ---
@@ -271,13 +269,13 @@ select hist_id, bucket_id, count, repeats,
 from mysql.stats_buckets order by lower_bound limit 5;
 ```
 
-| hist\_id | bucket\_id | count                                                                         | repeats | lower\_bound                                                                  | upper\_bound                                                                   | ndv |
-|:---------|:-----------|:------------------------------------------------------------------------------|:--------|:------------------------------------------------------------------------------|:-------------------------------------------------------------------------------|:----|
-| 1        | 0          | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">8</span> | 1       | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">1</span> | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">15</span> | 0   |
-| 1        | 1          | 8                                                                             | 1       | 17                                                                            | 31                                                                             | 0   |
-| 1        | 2          | 8                                                                             | 1       | 33                                                                            | 47                                                                             | 0   |
-| 1        | 3          | 8                                                                             | 1       | 49                                                                            | 63                                                                             | 0   |
-| 1        | 4          | 8                                                                             | 1       | 65                                                                            | 79                                                                             | 0   |
+| hist\_id | bucket\_id | count                                                                         | repeats | lower\_bound                                                                  | upper\_bound                                                                   | ndv  |
+| :------- | :--------- | :---------------------------------------------------------------------------- | :------ | :---------------------------------------------------------------------------- | :----------------------------------------------------------------------------- | :--- |
+| 1        | 0          | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">8</span> | 1       | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">1</span> | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">15</span> | 0    |
+| 1        | 1          | 8                                                                             | 1       | 17                                                                            | 31                                                                             | 0    |
+| 1        | 2          | 8                                                                             | 1       | 33                                                                            | 47                                                                             | 0    |
+| 1        | 3          | 8                                                                             | 1       | 49                                                                            | 63                                                                             | 0    |
+| 1        | 4          | 8                                                                             | 1       | 65                                                                            | 79                                                                             | 0    |
 
 ---
 transition: slide-up
@@ -294,13 +292,13 @@ select hist_id, bucket_id, count, repeats,
 from mysql.stats_buckets order by lower_bound desc limit 5;
 ```
 
-| hist\_id | bucket\_id | count                                                                         | repeats                                                                       | lower\_bound                                                                     | upper\_bound                                                                     | ndv |
-|:---------|:-----------|:------------------------------------------------------------------------------|:------------------------------------------------------------------------------|:---------------------------------------------------------------------------------|:---------------------------------------------------------------------------------|:----|
-| 1        | 229        | 1                                                                             | 1                                                                             | 1999                                                                             | 1999                                                                             | 0   |
-| 1        | 228        | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">9</span> | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">2</span> | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">1993</span> | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">1998</span> | 0   |
-| 1        | 227        | 9                                                                             | 2                                                                             | 1987                                                                             | 1992                                                                             | 0   |
-| 1        | 226        | 9                                                                             | 2                                                                             | 1981                                                                             | 1986                                                                             | 0   |
-| 1        | 225        | 9                                                                             | 2                                                                             | 1975                                                                             | 1980                                                                             | 0   |
+| hist\_id | bucket\_id | count                                                                         | repeats                                                                       | lower\_bound                                                                     | upper\_bound                                                                     | ndv  |
+| :------- | :--------- | :---------------------------------------------------------------------------- | :---------------------------------------------------------------------------- | :------------------------------------------------------------------------------- | :------------------------------------------------------------------------------- | :--- |
+| 1        | 229        | 1                                                                             | 1                                                                             | 1999                                                                             | 1999                                                                             | 0    |
+| 1        | 228        | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">9</span> | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">2</span> | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">1993</span> | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">1998</span> | 0    |
+| 1        | 227        | 9                                                                             | 2                                                                             | 1987                                                                             | 1992                                                                             | 0    |
+| 1        | 226        | 9                                                                             | 2                                                                             | 1981                                                                             | 1986                                                                             | 0    |
+| 1        | 225        | 9                                                                             | 2                                                                             | 1975                                                                             | 1980                                                                             | 0    |
 
 ---
 transition: slide-up
