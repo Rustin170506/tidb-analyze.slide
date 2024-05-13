@@ -300,13 +300,6 @@ from mysql.stats_buckets order by lower_bound desc limit 5;
 | 1        | 226        | 9                                                                             | 2                                                                             | 1981                                                                             | 1986                                                                             | 0    |
 | 1        | 225        | 9                                                                             | 2                                                                             | 1975                                                                             | 1980                                                                             | 0    |
 
----
-transition: slide-up
----
-
-# Data Structure
-
-<Histogram/>
 
 ---
 transition: slide-up
@@ -347,11 +340,17 @@ Histogram Bucket
 transition: slide-up
 ---
 
+# Data Structure
+
+<Histogram/>
+
+
+---
+transition: slide-up
+---
+
 # Data Flow
 
-<br/>
-
-<div class="flex justify-center items-center">
 
 ```plantuml
 @startuml
@@ -359,14 +358,16 @@ transition: slide-up
 skinparam monochrome reverse
 
 "TiDB Owner/Client" as TC -> TiDB: execute analyze statement
-TiDB -> TiKV: send analyze gRPC request
-TiKV -> TiKV: collect statistics
-TiKV --> TiDB: send analyze gRPC response
-TiDB -> TiDB: update statistics to system tables
+TiDB -> TiKV1: send analyze gRPC request
+TiKV1 -> TiKV1: collect statistics
+TiKV1 --> TiDB: send analyze gRPC response
+TiDB -> TiKV2: send analyze gRPC request
+TiKV2 -> TiKV2: collect statistics
+TiKV2--> TiDB: send analyze gRPC response
+TiDB -> TiDB: build and merge statistics \nand update statistics to system tables
 TiDB --> TC: return success
 @enduml
 ```
-</div>
 
 ---
 transition: slide-up
