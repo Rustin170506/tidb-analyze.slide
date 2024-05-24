@@ -52,9 +52,8 @@ transition: slide-up
 
 <div class="leading-8 opacity-80">
 PingCAP Database Engineer.<br/>
-Cargo Contributor.<br/>
-Crates.io Maintainer.<br/>
-Rustup Previous Maintainer.<br/>
+Cargo/Crates.io/Rustup Maintainer.<br/>
+Tokio Console Maintainer.<br/>
 </div>
 
 <div my-10 grid="~ cols-[40px_1fr] gap-y4" items-center justify-center>
@@ -146,33 +145,6 @@ ANALYZE TABLE t COLUMNS c1, c2 WITH 20 TOPN;
 ```
 
 ---
-transition: slide-left
----
-
-# Analyze Options
-
-<div class="flex flex-col justify-center items-center h-50">
-<p>
-ANALYZE TABLE t PARTITION p1 <span v-mark.circle.orange>COLUMNS c1, c2</span>;
-</p>
-<p>
-ANALYZE TABLE t COLUMNS c1, c2 <span v-mark.circle.orange>WITH 20 TOPN</span>;
-</p>
-</div>
-
-<div v-click class="text-xl text-center">
-We will store these options in the system tables.
-In the future, we can use these options to optimize the auto-analyze process.
-</div>
-
-<br/>
-<br/>
-
-<div v-click class="text-xl text-center">
-<span v-mark="{ at: 4, color: 'orange', type: 'underline' }">ANALYZE TABLE t;</span>
-</div>
-
----
 transition: slide-up
 ---
 
@@ -205,27 +177,6 @@ transition: slide-up
 ---
 
 # Data Structure Overview
-Wait for a while and then execute the analyze statement.
-
-TopN
-
-```sql
-select * from mysql.stats_top_n order by value limit 5;
-```
-
-| table\_id | is\_index | hist\_id | value                                                                                                                                                                             | count |
-| :-------- | :-------- | :------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---- |
-| 106       | 0         | 1        | <span class="text-green-500" v-mark="{ color: 'green', type: 'circle' }">0x038</span>00000000000<span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }" >0000</span> | 2     |
-| 106       | 0         | 1        | 0x038000000000000002                                                                                                                                                              | 2     |
-| 106       | 0         | 1        | 0x038000000000000004                                                                                                                                                              | 2     |
-| 106       | 0         | 1        | 0x038000000000000006                                                                                                                                                              | 2     |
-| 106       | 0         | 1        | 0x038000000000000008                                                                                                                                                              | 2     |
-
----
-transition: slide-up
----
-
-# Data Structure Overview
 Column Selectivity
 
 ```sql
@@ -243,6 +194,29 @@ transition: slide-up
 ---
 
 # Data Structure Overview
+Wait for a while and then execute the analyze statement.
+
+TopN
+
+```sql
+select * from mysql.stats_top_n order by value limit 5;
+```
+
+| table\_id | is\_index | hist\_id | value                                                                                                                                                                             | count |
+| :-------- | :-------- | :------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---- |
+| 106       | 0         | 1        | <span class="text-green-500" v-mark="{ color: 'green', type: 'circle' }">0x038</span>00000000000<span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }" >0000</span> | 2     |
+| 106       | 0         | 1        | 0x038000000000000002                                                                                                                                                              | 2     |
+| 106       | 0         | 1        | 0x038000000000000004                                                                                                                                                              | 2     |
+| 106       | 0         | 1        | 0x038000000000000006                                                                                                                                                              | 2     |
+| 106       | 0         | 1        | 0x038000000000000008                                                                                                                                                              | 2     |
+
+
+
+---
+transition: slide-up
+---
+
+# Data Structure Overview
 Column Selectivity
 
 ```sql
@@ -254,28 +228,6 @@ explain select * from t where a = 1999;
 | TableReader\_7     | 1.00                                                                             | root        |               | data:Selection\_6    |
 | └─Selection\_6     | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">1.00</span> | cop\[tikv\] |               | eq\(test.t.a, 1999\) |
 | └─TableFullScan\_5 | 3000.00                                                                          | cop\[tikv\] | table:t       | keep order:false     |
----
-transition: slide-up
----
-
-# Data Structure Overview
-Column Selectivity
-
-```sql
-select hist_id, bucket_id, count, repeats,
-       CAST(lower_bound AS SIGNED) AS lower_bound,
-       CAST(upper_bound AS SIGNED) AS upper_bound,
-       ndv
-from mysql.stats_buckets order by lower_bound limit 5;
-```
-
-| hist\_id | bucket\_id | count                                                                         | repeats | lower\_bound                                                                  | upper\_bound                                                                   | ndv  |
-| :------- | :--------- | :---------------------------------------------------------------------------- | :------ | :---------------------------------------------------------------------------- | :----------------------------------------------------------------------------- | :--- |
-| 1        | 0          | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">8</span> | 1       | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">1</span> | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">15</span> | 0    |
-| 1        | 1          | 8                                                                             | 1       | 17                                                                            | 31                                                                             | 0    |
-| 1        | 2          | 8                                                                             | 1       | 33                                                                            | 47                                                                             | 0    |
-| 1        | 3          | 8                                                                             | 1       | 49                                                                            | 63                                                                             | 0    |
-| 1        | 4          | 8                                                                             | 1       | 65                                                                            | 79                                                                             | 0    |
 
 ---
 transition: slide-up
@@ -378,7 +330,7 @@ It is similar to a SELECT statement. We send a coprocessor request to TiKV to co
 
 ## Request
 
-```proto
+```proto{all|3,4}
 message Request {
     kvrpcpb.Context context = 1;
     int64 tp = 2;
@@ -390,7 +342,7 @@ message Request {
 
 ## Response
 
-```proto
+```proto{all|2}
 message Response {
     bytes data = 1;
     errorpb.Error region_error = 2;
@@ -408,7 +360,7 @@ transition: slide-up
 
 ## Request
 
-```proto
+```proto{all|7,11,15}
 enum AnalyzeType {
     TypeIndex = 0;
     TypeColumn = 1;
