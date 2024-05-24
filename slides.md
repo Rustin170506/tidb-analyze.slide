@@ -88,6 +88,7 @@ layout: center
 
   - Analyze Overview
   - Data Structure Overview
+  - Data Flow Overview
   - Data Structure & Data Flow (TiKV Perspective)
   - Data Structure & Data Flow (TiDB Perspective)
   - Q&A
@@ -363,14 +364,11 @@ How to calculate the NDV(Non-Distinct Value)?
 We use [FMSketch(Flajolet-Martin Sketch)](https://en.wikipedia.org/wiki/Flajolet%E2%80%93Martin_algorithm) to calculate the NDV.
 
 
-
-
-
 ---
 transition: slide-up
 ---
 
-# Data Flow
+# Data Flow Overview
 
 
 ```plantuml
@@ -429,16 +427,7 @@ transition: slide-up
 
 ## Request
 
-```proto{all|7,11,15}
-enum AnalyzeType {
-    TypeIndex = 0;
-    TypeColumn = 1;
-    TypeCommonHandle = 2;
-    TypeSampleIndex = 3;
-    TypeMixed = 4;
-    TypeFullSampling = 5;
-}
-
+```proto{all|2,6}
 message AnalyzeReq {
     optional AnalyzeType tp = 1;
     optional uint64 flags = 3;
@@ -448,27 +437,16 @@ message AnalyzeReq {
 }
 ```
 
----
-transition: slide-up
----
-
-# Protocol Buffers - AnalyzeColumnsReq
-
-## Request
-
 ```proto
 message AnalyzeColumnsReq {
     optional int64 bucket_size = 1;
     optional int64 sample_size = 2;
     optional int64 sketch_size = 3;
     repeated ColumnInfo columns_info = 4;
-    optional int32 cmsketch_depth = 5;
-    optional int32 cmsketch_width = 6;
     repeated int64 primary_column_ids = 7;
     optional int32 version = 8;
-    repeated int64 primary_prefix_column_ids = 9;
-    repeated AnalyzeColumnGroup column_groups = 10;
     optional double sample_rate = 11;
+    ...
 }
 ```
 
@@ -476,18 +454,14 @@ message AnalyzeColumnsReq {
 transition: slide-up
 ---
 
-# Protocol Buffers - AnalyzeColumnsResp
+# Protocol Buffers - tipb
 
 ## Response
 
 ```proto
-message SampleCollector {
-    repeated bytes samples = 1;
-    optional int64 null_count = 2;
-    optional int64 count = 3;
-    optional FMSketch fm_sketch = 4;
-    optional CMSketch cm_sketch = 5;
-    optional int64 total_size = 6;
+message RowSample {
+    repeated bytes row = 1;
+    ...
 }
 
 message RowSampleCollector {
@@ -499,7 +473,7 @@ message RowSampleCollector {
 }
 
 message AnalyzeColumnsResp {
-    repeated SampleCollector collectors = 1;
+    ...
     optional Histogram pk_hist = 2;
     optional RowSampleCollector row_collector = 3;
 }
@@ -507,21 +481,65 @@ message AnalyzeColumnsResp {
 
 ---
 transition: slide-up
+layout: center
 ---
 
-# Data Structure - Histogram
+# Data Structure & Data Flow
+TiKV Perspective
 
-```proto
-message Bucket {
-    optional int64 count = 1
-    optional bytes lower_bound = 2;
-    optional bytes upper_bound = 3;
-    optional int64 repeats = 4;
-    optional int64 ndv = 5;
-}
+In TiKV, we only do two things:
 
-message Histogram {
-    optional int64 ndv = 1;
-    repeated Bucket buckets = 2;
-}
-```
+1. Calculate the FMSketch.
+2. Sample the data.
+
+
+---
+transition: slide-up
+---
+
+# Data Structure - FMSketch
+TiKV Perspective
+
+Mathematical Assumptions
+1. **Independence of Hash Functions**:
+   - Assume a good hash function **h(x)** that uniformly distributes input elements over a large range of integers.
+2. **Expectation of Trailing Zeros in Hash Values**:
+   - For uniformly distributed hash values, the number of trailing zeros in their binary representation follows a geometric distribution.
+
+
+---
+transition: slide-up
+---
+
+# Data Structure - FMSketch
+TiKV Perspective
+
+Algorithm Principles
+1. **Hash Mapping**:
+   - Map each element of the set to an integer using the hash function h(x).
+2. **Trailing Zeros Counting**:
+   - For each hash value, count the number of trailing zeros in its binary representation. Record the maximum count **R**.
+3. **Cardinality Estimation**:
+   - Use the maximum trailing zero count **R** to estimate the cardinality of the set with the formula $2^R$.
+
+---
+transition: slide-up
+---
+
+# Data Structure - FMSketch
+TiKV Perspective
+
+Example
+- Given a set $\{a, b, c\}$
+- Hash values $h(a) = 8$, $h(b) = 12$, $h(c) = 5$
+- Binary representations: $1000$, $1100$, $0101$
+- Trailing zeros: $3$, $2$, $0$
+- Maximum trailing zeros $R = 3$
+- Estimated cardinality: $2^3 = 8$
+
+
+---
+transition: slide-up
+---
+
+<FMSketch/>
