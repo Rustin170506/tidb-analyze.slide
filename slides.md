@@ -189,6 +189,17 @@ explain select * from t where a = 100;
 | └─Selection\_6     | <span class="text-green-500" v-mark="{ color: 'green', type: 'circle' }">2.00</span> | cop\[tikv\] |               | eq\(test.t.a, 100\) |
 | └─TableFullScan\_5 | 3000.00                                                                              | cop\[tikv\] | table:t       | keep order:false    |
 
+<br/>
+
+```go{all|2}
+func equalRowCountOnColumn(encodedVal []byte...) {
+  rowcount, ok := c.TopN.QueryTopN(sctx, encodedVal)
+	if ok {
+		return float64(rowcount), nil
+	}
+}
+```
+
 ---
 transition: slide-up
 ---
@@ -228,6 +239,17 @@ explain select * from t where a = 1999;
 | TableReader\_7     | 1.00                                                                             | root        |               | data:Selection\_6    |
 | └─Selection\_6     | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">1.00</span> | cop\[tikv\] |               | eq\(test.t.a, 1999\) |
 | └─TableFullScan\_5 | 3000.00                                                                          | cop\[tikv\] | table:t       | keep order:false     |
+
+<br/>
+
+```go{all|2,3,4}
+func equalRowCountOnColumn(encodedVal []byte...) {
+	histCnt, matched := c.Histogram.EqualRowCount(sctx, val, true)
+	if matched {
+		return histCnt, nil
+	}
+}
+```
 
 ---
 transition: slide-up
@@ -296,6 +318,34 @@ transition: slide-up
 
 <Histogram/>
 
+---
+transition: slide-up
+---
+
+# Data Structure Overview
+Column Selectivity
+
+```sql
+explain select * from t where a = 9999;
+```
+
+| id                 | estRows                                                                          | task        | access object | operator info        |
+| :----------------- | :------------------------------------------------------------------------------- | :---------- | :------------ | :------------------- |
+| TableReader\_7     | 1.33                                                                             | root        |               | data:Selection\_6    |
+| └─Selection\_6     | <span class="text-red-500" v-mark="{ color: 'red', type: 'circle' }">1.33</span> | cop\[tikv\] |               | eq\(test.t.a, 2000\) |
+| └─TableFullScan\_5 | 3000.00                                                                          | cop\[tikv\] | table:t       | keep order:false     |
+
+<br/>
+
+```go{all|2,6}
+func equalRowCountOnColumn(encodedVal []byte...) {
+	histNDV := float64(c.Histogram.NDV - int64(c.TopN.Num()))
+	if histNDV <= 0 {
+		return 0, nil
+	}
+	return c.Histogram.NotNullCount() / histNDV, nil
+}
+```
 
 ---
 transition: slide-up
