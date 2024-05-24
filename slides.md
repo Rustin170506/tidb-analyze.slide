@@ -349,6 +349,25 @@ func equalRowCountOnColumn(encodedVal []byte...) {
 
 ---
 transition: slide-up
+layout: center
+---
+
+# Data Structure Overview
+Column Selectivity
+
+- Not Null Count: The number of not null values in the column.
+- NDV: The number of distinct values in the column.
+
+How to calculate the NDV(Non-Distinct Value)?
+
+We use [FMSketch(Flajolet-Martin Sketch)](https://en.wikipedia.org/wiki/Flajolet%E2%80%93Martin_algorithm) to calculate the NDV.
+
+
+
+
+
+---
+transition: slide-up
 ---
 
 # Data Flow
