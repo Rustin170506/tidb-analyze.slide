@@ -508,3 +508,40 @@ transition: slide-up
 ---
 
 <FMSketch/>
+
+---
+transition: slide-up
+---
+
+# Data Structure - Bernoulli Sampling
+General Perspective
+
+Mathematical Assumptions
+1. **Independence of Sample Selection**:
+   - Each sample in the data set is selected independently from other samples.
+2. **Uniform Sampling Probability**:
+   - Each sample is selected with a fixed probability $p(0 ≤ p ≤ 1)$, uniformly across the entire data set.
+3. **Bernoulli Distribution**:
+   - Each sample selection follows a Bernoulli distribution with parameter $p$.
+
+---
+transition: slide-up
+---
+
+# Data Structure - Bernoulli Sampling
+General Perspective
+
+Algorithm Principles
+1. **Probability Definition**:
+   - Define a sampling probability $p$ for selecting each sample.
+2. **Independent Sampling**:
+   - For each sample in the data set, generate a random number and compare it to $p$. If the random number is less than $p$, include the sample in the resulting subset.
+3. **Subset Generation**:
+   - The subset of samples selected using this method forms the result of the Bernoulli sampling.
+
+
+---
+transition: slide-up
+---
+
+<BernoulliSampling/>
