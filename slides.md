@@ -545,3 +545,20 @@ transition: slide-up
 ---
 
 <BernoulliSampling/>
+
+---
+tarnsition: slide-up
+layout: center
+---
+
+# Data Structure & Data Flow
+TiDB Perspective
+
+In TiDB, we do the following things:
+
+1. Merge all FMSketches and Sample Data.
+2. Build TopN and Histogram.
+3. Update statistics to system tables.
+
+
+
