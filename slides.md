@@ -547,7 +547,7 @@ transition: slide-up
 <BernoulliSampling/>
 
 ---
-tarnsition: slide-up
+transition: slide-up
 layout: center
 ---
 
@@ -562,3 +562,27 @@ In TiDB, we do the following things:
 
 
 
+---
+transition: slide-up
+---
+
+# Data Structure & Data Flow
+TiDB Perspective - Merge FMSketches and Sample Data
+
+
+```plantuml
+@startuml
+
+skinparam monochrome reverse
+
+"TiDB Owner/Client" as TC -> TiDB: execute analyze statement
+TiDB -> TiKV1: send analyze gRPC request
+TiKV1 -> TiKV1: collect statistics
+TiKV1 --> TiDB: send analyze gRPC response
+TiDB -> TiKV2: send analyze gRPC request
+TiKV2 -> TiKV2: collect statistics
+TiKV2--> TiDB: send analyze gRPC response
+TiDB -> TiDB: build and merge statistics \nand update statistics to system tables
+TiDB --> TC: return success
+@enduml
+```
