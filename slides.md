@@ -567,8 +567,6 @@ transition: slide-up
 ---
 
 # Data Structure & Data Flow
-TiDB Perspective - Merge FMSketches and Sample Data
-
 
 ```plantuml
 @startuml
@@ -586,3 +584,29 @@ TiDB -> TiDB: build and merge statistics \nand update statistics to system table
 TiDB --> TC: return success
 @enduml
 ```
+
+---
+transition: slide-up
+---
+
+# Data Structure & Data Flow
+TiDB Perspective
+
+```plantuml
+@startuml
+
+skinparam monochrome reverse
+
+"TiDB Owner/Client" as TC -> TiDB: execute analyze statement
+TiDB -> TiKV1: send analyze gRPC request to scan region1
+TiKV1 -> TiKV1: scan region1 and collect statistics
+TiKV1 --> TiDB: send analyze gRPC region1 response
+TiDB -> TiKV1: send analyze gRPC request to scan region2
+TiKV1 -> TiKV1: scan region2 and collect statistics
+TiKV1 --> TiDB: send analyze gRPC region2 response
+TiDB -> TiDB: build and merge statistics \nand update statistics to system tables
+TiDB --> TC: return success
+@enduml
+```
+
+<div v-click class="absolute top-40 right-0 transform rotate-45 bg-red-500 text-white font-bold py-2 px-4 rounded-lg"> tidb_analyze_distsql_scan_concurrency </div>
