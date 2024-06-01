@@ -605,11 +605,11 @@ group concurrently merge FMSketches and Sample Data
   worker2 -> worker2: merge the row sample collector \ndata to the result channel
 end
 AE -> AE: merge the result channel data to the root row sample collector
-AE -> AE: build and merge statistics \nand return analyze result
+AE -> AE: build the TopN and Histogram \nand return analyze result
 @enduml
 ```
 
-<div v-click class="absolute top-50 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_build_sampling_stats_concurrency </div>
+<div v-click class="absolute top-40 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_build_sampling_stats_concurrency </div>
 
 ---
 transition: slide-up
