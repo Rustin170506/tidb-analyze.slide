@@ -718,3 +718,44 @@ AE -> AE: update statistics to system tables
 
 <div v-click class="absolute top-30 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_build_sampling_stats_concurrency </div>
 
+
+---
+transition: slide-up
+---
+
+# Data Structure & Data Flow
+TiDB Perspective - Build TopN and Histogram
+
+```go {all}{lines:true,maxHeight:'400px'}
+// Initialize topNList and cur
+topNList := []
+cur := samples[0].Value
+curCnt := 0
+// Iterate through the samples
+for sample in samples {
+  sampleBytes := sample.Value
+  // If the current sample value is the same as cur, increment curCnt
+  if sampleBytes == cur {
+    curCnt++
+    continue
+  }
+  // If the current sample value is different from cur, handle the count of cur
+  if len(topNList) == 0 || curCnt > topNList[-1].Count {
+    // Find the position to insert cur
+    j := len(topNList)
+    for j > 0 && curCnt < topNList[j-1].Count {
+      j--
+    }
+    // Insert cur into topNList
+    topNList.insert(j, {Encoded: cur, Count: curCnt})
+    // If the length of topNList exceeds numTopN, remove the last element
+    if len(topNList) > numTopN {
+      topNList = topNList[:numTopN]
+    }
+  }
+  // Update cur and curCnt
+  cur = sampleBytes
+  curCnt = 1
+}
+```
+
