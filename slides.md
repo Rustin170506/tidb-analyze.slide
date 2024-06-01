@@ -557,7 +557,6 @@ AE --> AE: merge global statistics if needed
 
 <div v-click class="absolute top-40 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_build_stats_concurrency </div>
 
-
 ---
 transition: slide-up
 ---
@@ -581,11 +580,11 @@ group concurrently scan regions
   TiKV1 --> coprWorker1: send analyze gRPC region1 response
   TiKV1 --> coprWorker2: send analyze gRPC region2 response
 end
-AE -> AE: build and merge statistics \nand return analyze result
+AE -> AE: build and merge statistics \nand return the analyze result
 @enduml
 ```
 
-<div v-click class="absolute top-50 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_analyze_distsql_scan_concurrency </div>
+<div v-click class="absolute top-40 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_analyze_distsql_scan_concurrency </div>
 
 ---
 transition: slide-up
