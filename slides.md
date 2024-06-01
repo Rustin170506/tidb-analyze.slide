@@ -598,12 +598,14 @@ TiDB Perspective
 skinparam monochrome reverse
 
 "TiDB Owner/Client" as TC -> TiDB: execute analyze statement
-TiDB -> TiKV1: send analyze gRPC request to scan region1
-TiKV1 -> TiKV1: scan region1 and collect statistics
-TiKV1 --> TiDB: send analyze gRPC region1 response
-TiDB -> TiKV1: send analyze gRPC request to scan region2
-TiKV1 -> TiKV1: scan region2 and collect statistics
-TiKV1 --> TiDB: send analyze gRPC region2 response
+group concurrently scan regions
+  TiDB -> TiKV1: send analyze gRPC request to scan region1
+  TiKV1 -> TiKV1: scan region1 and collect statistics
+  TiKV1 --> TiDB: send analyze gRPC region1 response
+  TiDB -> TiKV1: send analyze gRPC request to scan region2
+  TiKV1 -> TiKV1: scan region2 and collect statistics
+  TiKV1 --> TiDB: send analyze gRPC region2 response
+end
 TiDB -> TiDB: build and merge statistics \nand update statistics to system tables
 TiDB --> TC: return success
 @enduml
