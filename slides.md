@@ -533,12 +533,12 @@ transition: slide-up
 # Data Structure & Data Flow
 TiDB Perspective - Analyze tables or partitions concurrently
 
-```plantuml{ scale: 0.9 }
+```plantuml
 @startuml
 
 skinparam monochrome reverse
 
-"Analyze Plan Builder" as APB -> APB: build analyze plan and \ncreate tasks for each table/partition
+"Analyze Plan Builder" as APB -> APB: build a analyze plan and \ncreate tasks for each table/partition
 APB -> "Analyze Executor" as AE: store the analyze plan
 AE --> APB: success
 
@@ -548,7 +548,7 @@ analyzeWorker1 -> analyzeWorker1: analyze the table/partition \nand send the ana
 AE -> analyzeWorker2: start the worker2 and \nwait for the analyze task
 analyzeWorker2 -> analyzeWorker2: analyze the table/partition \nand send the analyze result to the result channel
 AE -> resultHandler: start the result handler and \nwait for the result channel
-AE -> resultHandler: merge the analyze result \nand update statistics to system tables
+resultHandler -> resultHandler: receive the analyze result \nand update statistics to system tables
 AE -> AE: wait for all workers to finish
 end
 AE --> AE: Merge global statistics if needed
