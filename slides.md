@@ -724,7 +724,7 @@ transition: slide-up
 ---
 
 # Data Structure & Data Flow
-TiDB Perspective - Build TopN and Histogram
+TiDB Perspective - Build TopN
 
 ```go {all}{lines:true,maxHeight:'400px'}
 // Initialize topNList and cur
@@ -759,3 +759,51 @@ for sample in samples {
 }
 ```
 
+---
+transition: slide-up
+---
+
+# Data Structure & Data Flow
+TiDB Perspective - Build Histogram
+
+```go {all}{lines:true,maxHeight:'400px'}
+// Initialize variables
+sampleNum := int64(len(samples))
+sampleFactor := float64(count) / float64(sampleNum)
+ndvFactor := float64(count) / float64(ndv)
+if ndvFactor > sampleFactor {
+    ndvFactor = sampleFactor
+}
+valuesPerBucket := float64(count)/float64(numBuckets) + sampleFactor
+bucketIdx := 0
+var lastCount int64
+// Append first sample to histogram
+hg.AppendBucket(&samples[0].Value, &samples[0].Value, int64(sampleFactor), int64(ndvFactor))
+// Iterate through the samples
+for i := int64(1); i < sampleNum; i++ {
+    upper := new(types.Datum)
+    hg.UpperToDatum(bucketIdx, upper)
+    cmp, err := upper.Compare(sc.TypeCtx(), &samples[i].Value, collate.GetBinaryCollator())
+    if err != nil {
+        return 0, errors.Trace(err)
+    }
+    totalCount := float64(i+1) * sampleFactor
+    // Same value as current bucket value
+    if cmp == 0 {
+        hg.Buckets[bucketIdx].Count = int64(totalCount)
+        if hg.Buckets[bucketIdx].Repeat == int64(ndvFactor) {
+            hg.Buckets[bucketIdx].Repeat = int64(2 * sampleFactor)
+        } else {
+            hg.Buckets[bucketIdx].Repeat += int64(sampleFactor)
+        }
+    } else if totalCount-float64(lastCount) <= valuesPerBucket {
+        // Update current bucket
+        hg.updateLastBucket(&samples[i].Value, int64(totalCount), int64(ndvFactor), false)
+    } else {
+        // Store in the next bucket
+        lastCount = hg.Buckets[bucketIdx].Count
+        bucketIdx++
+        hg.AppendBucket(&samples[i].Value, &samples[i].Value, int64(totalCount), int64(ndvFactor))
+    }
+}
+```
