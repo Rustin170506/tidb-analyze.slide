@@ -551,7 +551,7 @@ AE -> resultHandler: start the result handler and \nwait for the result channel
 resultHandler -> resultHandler: receive the analyze result \nand update statistics to system tables
 AE -> AE: wait for all workers to finish
 end
-AE --> AE: Merge global statistics if needed
+AE --> AE: merge global statistics if needed
 @enduml
 ```
 
