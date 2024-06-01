@@ -590,9 +590,9 @@ transition: slide-up
 ---
 
 # Data Structure & Data Flow
-TiDB Perspective
+TiDB Perspective - Scan regions concurrently
 
-```plantuml
+```plantuml{ scale: 0.8 }
 @startuml
 
 skinparam monochrome reverse
@@ -611,4 +611,110 @@ TiDB --> TC: return success
 @enduml
 ```
 
-<div v-click class="absolute top-40 right-0 transform rotate-45 bg-red-500 text-white font-bold py-2 px-4 rounded-lg"> tidb_analyze_distsql_scan_concurrency </div>
+<div v-click class="absolute top-50 right-20 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_analyze_distsql_scan_concurrency </div>
+
+---
+transition: slide-up
+---
+
+# Data Structure & Data Flow
+TiDB Perspective - Merge FMSketches and Sample Data
+
+```plantuml { scale: 0.8 }
+@startuml
+
+skinparam monochrome reverse
+
+"Analyze Executor" as AE -> AE: create a root row sample collector
+group concurrently merge FMSketches and Sample Data
+  AE -> worker1: start the worker1 and \nwait for the row sample collector data channel
+  worker1 -> worker1: merge the row sample collector \ndata to the result channel
+  AE -> worker2: start the worker2 and \nwait for the row sample collector data channel
+  worker2 -> worker2: merge the row sample collector \ndata to the result channel
+end
+AE -> AE: merge the result channel data to the root row sample collector
+AE -> AE: build TopN and Histogram and update statistics to system tables
+@enduml
+```
+
+<div v-click class="absolute top-50 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_build_sampling_stats_concurrency </div>
+
+---
+transition: slide-up
+---
+
+# Data Structure & Data Flow
+TiDB Perspective - Merge Collector
+
+```go{all|3-5|12}
+func (s *BernoulliRowSampleCollector) MergeCollector(subCollector RowSampleCollector) {
+	s.Count += subCollector.Base().Count
+	for i := range subCollector.Base().FMSketches {
+		s.FMSketches[i].MergeFMSketch(subCollector.Base().FMSketches[i])
+	}
+	for i := range subCollector.Base().NullCount {
+		s.NullCount[i] += subCollector.Base().NullCount[i]
+	}
+	for i := range subCollector.Base().TotalSizes {
+		s.TotalSizes[i] += subCollector.Base().TotalSizes[i]
+	}
+	s.baseCollector.Samples = append(s.baseCollector.Samples, subCollector.Base().Samples...)
+	s.MemSize += subCollector.Base().MemSize
+}
+```
+
+---
+transition: slide-up
+---
+
+# Data Structure & Data Flow
+TiDB Perspective - Merge FMSketches
+
+```go{all|3-13|14-18}
+func (s *FMSketch) MergeFMSketch(rs *FMSketch) {
+	...
+  // Pick the bigger mask.
+	if s.mask < rs.mask {
+		s.mask = rs.mask
+		s.hashset.Iter(func(key uint64, _ bool) bool {
+			if (key & s.mask) != 0 {
+        // Remove the key if it is not in the mask range.
+				s.hashset.Delete(key)
+			}
+			return false
+		})
+	}
+  // Merge the hashset.
+	rs.hashset.Iter(func(key uint64, _ bool) bool {
+		s.insertHashValue(key)
+		return false
+	})
+}
+```
+
+---
+transition: slide-up
+---
+
+# Data Structure & Data Flow
+TiDB Perspective - Build TopN and Histogram
+
+```plantuml
+@startuml
+
+skinparam monochrome reverse
+
+"Analyze Executor" as AE -> AE: sort all samples from the root row sample collector
+AE -> AE: send the build task column(index) by column(index)
+group concurrently build TopN and Histogram
+  AE -> buildWorker1: start the builder worker1 and \nwait for the build task channel
+  buildWorker1 -> buildWorker1: build the topN and histogram for the column(index)
+  AE -> buildWorker2: start the builder worker2 and \nwait for the build task channel
+  buildWorker2 -> buildWorker2: build the topN and histogram for the column(index)
+end
+AE -> AE: update statistics to system tables
+@enduml
+```
+
+<div v-click class="absolute top-30 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_build_sampling_stats_concurrency </div>
+
