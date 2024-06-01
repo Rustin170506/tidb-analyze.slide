@@ -567,8 +567,9 @@ transition: slide-up
 ---
 
 # Data Structure & Data Flow
+Overview
 
-```plantuml
+```plantuml{ scale: 0.9 }
 @startuml
 
 skinparam monochrome reverse
@@ -590,28 +591,61 @@ transition: slide-up
 ---
 
 # Data Structure & Data Flow
-TiDB Perspective - Scan regions concurrently
+TiDB Perspective - Analyze tables or partitions concurrently
 
-```plantuml{ scale: 0.8 }
+```plantuml{ scale: 0.9 }
 @startuml
 
 skinparam monochrome reverse
 
-"TiDB Owner/Client" as TC -> TiDB: execute analyze statement
-group concurrently scan regions
-  TiDB -> TiKV1: send analyze gRPC request to scan region1
-  TiKV1 -> TiKV1: scan region1 and collect statistics
-  TiKV1 --> TiDB: send analyze gRPC region1 response
-  TiDB -> TiKV1: send analyze gRPC request to scan region2
-  TiKV1 -> TiKV1: scan region2 and collect statistics
-  TiKV1 --> TiDB: send analyze gRPC region2 response
+"Analyze Plan Builder" as APB -> APB: build analyze plan and \ncreate tasks for each table/partition
+APB -> "Analyze Executor" as AE: store the analyze plan
+AE --> APB: success
+
+group concurrently analyze tables/partitions
+AE -> analyzeWorker1: start the analyze worker1 and \nwait for the analyze task
+analyzeWorker1 -> analyzeWorker1: analyze the table/partition \nand send the analyze result to the result channel
+AE -> analyzeWorker2: start the worker2 and \nwait for the analyze task
+analyzeWorker2 -> analyzeWorker2: analyze the table/partition \nand send the analyze result to the result channel
+AE -> resultHandler: start the result handler and \nwait for the result channel
+AE -> resultHandler: merge the analyze result \nand update statistics to system tables
+AE -> AE: wait for all workers to finish
 end
-TiDB -> TiDB: build and merge statistics \nand update statistics to system tables
-TiDB --> TC: return success
+AE --> AE: Merge global statistics if needed
 @enduml
 ```
 
-<div v-click class="absolute top-50 right-20 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_analyze_distsql_scan_concurrency </div>
+<div v-click class="absolute top-50 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_build_stats_concurrency </div>
+
+
+---
+transition: slide-up
+---
+
+# Data Structure & Data Flow
+TiDB Perspective - Scan regions concurrently
+
+```plantuml{ scale: 0.9 }
+@startuml
+
+skinparam monochrome reverse
+
+"Analyze Executor" as AE -> AE: open
+group concurrently scan regions
+  AE -> coprWorker1: start the worker1 and wait for the scan task
+  AE -> coprWorker2: start the worker2 and wait for the scan task
+  coprWorker1 -> TiKV1: send analyze gRPC request to scan region1
+  coprWorker2 -> TiKV1: send analyze gRPC request to scan region2
+  TiKV1 -> TiKV1: scan region1 and collect statistics
+  TiKV1 -> TiKV1: scan region2 and collect statistics
+  TiKV1 --> coprWorker1: send analyze gRPC region1 response
+  TiKV1 --> coprWorker2: send analyze gRPC region2 response
+end
+AE -> AE: build and merge statistics \nand return analyze result
+@enduml
+```
+
+<div v-click class="absolute top-50 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_analyze_distsql_scan_concurrency </div>
 
 ---
 transition: slide-up
@@ -620,9 +654,8 @@ transition: slide-up
 # Data Structure & Data Flow
 TiDB Perspective - Merge FMSketches and Sample Data
 
-```plantuml { scale: 0.8 }
+```plantuml { scale: 0.9 }
 @startuml
-
 skinparam monochrome reverse
 
 "Analyze Executor" as AE -> AE: create a root row sample collector
@@ -633,7 +666,7 @@ group concurrently merge FMSketches and Sample Data
   worker2 -> worker2: merge the row sample collector \ndata to the result channel
 end
 AE -> AE: merge the result channel data to the root row sample collector
-AE -> AE: build TopN and Histogram and update statistics to system tables
+AE -> AE: build and merge statistics \nand return analyze result
 @enduml
 ```
 
@@ -712,7 +745,7 @@ group concurrently build TopN and Histogram
   AE -> buildWorker2: start the builder worker2 and \nwait for the build task channel
   buildWorker2 -> buildWorker2: build the topN and histogram for the column(index)
 end
-AE -> AE: update statistics to system tables
+AE -> AE: return the analyze result
 @enduml
 ```
 
