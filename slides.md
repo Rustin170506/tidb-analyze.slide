@@ -555,7 +555,7 @@ AE --> AE: merge global statistics if needed
 @enduml
 ```
 
-<div v-click class="absolute top-50 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_build_stats_concurrency </div>
+<div v-click class="absolute top-40 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_build_stats_concurrency </div>
 
 
 ---
