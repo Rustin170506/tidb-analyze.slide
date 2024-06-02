@@ -779,3 +779,60 @@ for i := int64(1); i < sampleNum; i++ {
     }
 }
 ```
+
+---
+transition: slide-up
+---
+
+# Data Structure & Data Flow
+TiDB Perspective - Save Statistics
+
+```plantuml
+@startuml
+
+skinparam monochrome reverse
+
+"Analyze Executor" as AE -> AE: wait for analyze results
+group concurrently save statistics
+AE -> "Stats Save Worker1" as SW1: start the save worker1 and \nwait for the save task channel
+SW1 -> SW1: save the analyze result to the system tables
+AE -> "Stats Save Worker2" as SW2: start the save worker2 and \nwait for the save task channel
+SW2 -> SW2: save the analyze result to the system tables
+end
+@enduml
+```
+
+<div v-click class="absolute top-30 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_analyze_partition_concurrency </div>
+
+---
+transition: slide-up
+---
+
+# Data Structure & Data Flow
+TiDB Perspective - Merge Global Statistics
+
+```plantuml
+@startuml
+
+skinparam monochrome reverse
+
+"Analyze Executor" as AE -> "Async Global Stats Worker" as AW: create a async global statistics worker
+AW -> "IO Worker" as IW: start the IO worker and \nwait for the global statistics task
+AW -> "CPU Worker" as CW: start the CPU worker and \nwait for the global statistics task
+IW -> IW: load the FMSketches, TopN, and Histogram \nfrom the system tables for each partition
+IW -> CW: send FMsketches, TopN, and Histogram \nto the CPU worker through the channel
+CW -> CW: receive the FMSketches and \nmerge them to the global FMSketch
+group concurrently merge TopN
+  CW -> CW: receive the TopN and merge them to the global TopN concurrently
+  CW -> "TopN Builder1" as TB1: start the topN builder1 and \nwait for the build task channel
+  TB1 -> TB1: merge the topN to the global topN
+  CW -> "TopN Builder2" as TB2: start the topN builder2 and \nwait for the build task channel
+  TB2 -> TB2: merge the topN to the global topN
+end
+CW -> CW: receive the Histogram and merge them to the global Histogram
+AE -> AE: wait for the IO worker and CPU worker to finish and return the global statistics
+AE -> AE: update the global statistics to the system tables
+@enduml
+```
+
+<div v-click class="absolute top-30 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_merge_partition_stats_concurrency </div>
