@@ -1,6 +1,6 @@
 ---
 theme: seriph
-background: https://github.com/pingcap/tidb/assets/29879298/b565d5ea-902a-4082-b7b7-1ebce80ba029
+background: none
 class: text-center
 highlighter: shiki
 lineNumbers: false
