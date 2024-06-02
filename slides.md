@@ -868,3 +868,9 @@ layout: center
 <br/>
 
 ## Do you have any questions?
+
+---
+layout: center
+---
+
+# Thank You!
