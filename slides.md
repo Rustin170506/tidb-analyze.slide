@@ -23,7 +23,7 @@ colorSchema: dark
 
 A Deep Dive
 
-Based on TiDB [v7.6.0](https://github.com/pingcap/tidb/tree/v7.6.0)
+Based on TiDB [v8.1.0](https://github.com/pingcap/tidb/tree/v8.1.0)
 
 RUSTIN LIU
 
