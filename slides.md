@@ -836,3 +836,35 @@ AE -> AE: update the global statistics to the system tables
 ```
 
 <div v-click class="absolute top-30 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_merge_partition_stats_concurrency </div>
+
+
+---
+transition: slide-up
+---
+
+# Data Structure & Data Flow
+
+<div style="font-size: 12px;">
+
+| Configuration Name                     | Description                                                                                                                                                      | Default Value | Scope                         |
+| :------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------ | :---------------------------- |
+| tidb_build_stats_concurrency           | The number of concurrent workers to analyze tables or partitions concurrently                                                                                    | 2             | Global/Session                |
+| tidb_auto_build_stats_concurrency      | The number of concurrent workers to automatically analyze tables or partitions                                                                                   | 1             | Global(only for auto analyze) |
+| tidb_analyze_distsql_scan_concurrency  | The number of concurrent workers to scan regions concurrently                                                                                                    | 4             | Global/Session                |
+| tidb_sysproc_scan_concurrency          | The number of concurrent workers to scan regions concurrently                                                                                                    | 1             | Global(only for auto analyze) |
+| tidb_build_sampling_stats_concurrency  | 1.The number of concurrent workers to merge FMSketches and Sample Data from different regions <br/> 2. The number of current workers to build TopN and Histogram | 2             | Global/Session                |
+| tidb_analyze_partition_concurrency     | The number of concurrent workers to save statistics to the system tables                                                                                         | 2             | Global/Session                |
+| tidb_merge_partition_stats_concurrency | The number of concurrent workers to merge global TopN                                                                                                            | 1             | Global/Session                |
+
+</div>
+
+---
+layout: center
+---
+
+# Q&A
+
+<br/>
+<br/>
+
+## Do you have any questions?
