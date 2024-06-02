@@ -846,15 +846,15 @@ transition: slide-up
 
 <div style="font-size: 12px;">
 
-| Configuration Name                     | Description                                                                                                                                                      | Default Value | Scope                         |
-| :------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------ | :---------------------------- |
-| tidb_build_stats_concurrency           | The number of concurrent workers to analyze tables or partitions concurrently                                                                                    | 2             | Global/Session                |
-| tidb_auto_build_stats_concurrency      | The number of concurrent workers to automatically analyze tables or partitions                                                                                   | 1             | Global(only for auto analyze) |
-| tidb_analyze_distsql_scan_concurrency  | The number of concurrent workers to scan regions concurrently                                                                                                    | 4             | Global/Session                |
-| tidb_sysproc_scan_concurrency          | The number of concurrent workers to scan regions concurrently                                                                                                    | 1             | Global(only for auto analyze) |
-| tidb_build_sampling_stats_concurrency  | 1.The number of concurrent workers to merge FMSketches and Sample Data from different regions <br/> 2. The number of current workers to build TopN and Histogram | 2             | Global/Session                |
-| tidb_analyze_partition_concurrency     | The number of concurrent workers to save statistics to the system tables                                                                                         | 2             | Global/Session                |
-| tidb_merge_partition_stats_concurrency | The number of concurrent workers to merge global TopN                                                                                                            | 1             | Global/Session                |
+| Configuration Name                     | Description                                                                                                                                                          | Default Value | Scope                          | Affected Component   |
+| :------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------ | :----------------------------- | :------------------- |
+| tidb_build_stats_concurrency           | The number of concurrent workers to analyze tables or partitions                                                                                                     | 2             | Global/Session                 | TiDB + TiKV          |
+| tidb_auto_build_stats_concurrency      | The number of concurrent workers to automatically analyze tables or partitions                                                                                       | 1             | Global (only for auto analyze) | TiDB (Owner)  + TiKV |
+| tidb_analyze_distsql_scan_concurrency  | The number of concurrent workers to scan regions                                                                                                                     | 4             | Global/Session                 | TiKV                 |
+| tidb_sysproc_scan_concurrency          | The number of concurrent workers to scan regions                                                                                                                     | 1             | Global (only for auto analyze) | TiKV                 |
+| tidb_build_sampling_stats_concurrency  | 1. The number of concurrent workers to merge FMSketches and Sample Data from different regions <br/> 2. The number of concurrent workers to build TopN and Histogram | 2             | Global/Session                 | TiDB                 |
+| tidb_analyze_partition_concurrency     | The number of concurrent workers to save statistics to the system tables                                                                                             | 2             | Global/Session                 | TiDB                 |
+| tidb_merge_partition_stats_concurrency | The number of concurrent workers to merge global TopN                                                                                                                | 1             | Global/Session                 | TiDB                 |
 
 </div>
 
