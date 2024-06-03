@@ -1,18 +1,17 @@
-
 <template>
-  <div class="flex flex-col items-center space-y-4 text-white">
+  <div class="flex flex-col items-center space-y-4 text-black">
     <h1 class="text-2xl font-bold">Flajolet-Martin Sketch</h1>
     <div class="flex space-x-2">
       <div v-for="(item, index) in dataset" :key="index" class="flex flex-col items-center">
-        <div class="p-2 border rounded bg-gray-800">{{ item }}</div>
+        <div class="p-2 border rounded bg-gray-200">{{ item }}</div>
         <div class="mt-2 text-sm">{{ hashValues[index] }}</div>
         <div v-if="hashValues[index]" class="mt-1">
           <div v-for="n in tailZeros[index]" :key="n" class="text-green-500">0</div>
         </div>
       </div>
     </div>
-    <button @click="generateHashValues" class="px-4 py-2 border rounded text-white">Generate Hash Values</button>
-    <div v-if="maxTailZeros !== null" class="mt-4 text-xl">
+    <button @click="generateHashValues" class="px-4 py-2 border rounded bg-blue-500 text-white">Generate Hash Values</button>
+    <div v-if="maxTailZeros !== null" class="mt-4 text-xl text-black">
       Estimated Cardinality: 2^{{ maxTailZeros }} = {{ 2 ** maxTailZeros }}
     </div>
   </div>

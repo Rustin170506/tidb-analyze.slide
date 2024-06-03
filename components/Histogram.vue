@@ -34,7 +34,7 @@ onMounted(() => {
       datasets: [
         {
           data: histogramData.map((item) => item.count),
-          borderColor: "white",
+          borderColor: "gray",
           borderWidth: 1,
         },
       ],
@@ -44,12 +44,12 @@ onMounted(() => {
         y: {
           beginAtZero: true,
           ticks: {
-            color: "white",
+            color: "darkblue",
           },
         },
         x: {
           ticks: {
-            color: "white",
+            color: "darkblue",
           },
         },
       },
@@ -77,7 +77,7 @@ onMounted(() => {
         title: {
           display: true,
           text: "Histogram",
-          color: "white",
+          color: "darkblue",
         },
         legend: {
           display: false,

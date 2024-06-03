@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center space-y-4 text-white">
+  <div class="flex flex-col items-center space-y-4 text-black">
     <h1 class="text-2xl font-bold">Bernoulli Sampling</h1>
     <div class="flex space-x-2">
       <div
@@ -10,23 +10,23 @@
         <div
           :class="[
             'p-2 border rounded',
-            sampledIndices.includes(index) ? 'bg-green-500' : 'bg-gray-800',
+            sampledIndices.includes(index) ? 'bg-green-500' : 'bg-gray-200',
           ]"
         >
           {{ item }}
         </div>
-        <div v-if="sampledIndices.includes(index)" class="mt-2 text-sm">
+        <div v-if="sampledIndices.includes(index)" class="mt-2 text-sm text-black">
           Sampled
         </div>
       </div>
     </div>
-    <div class="mt-4 text-xl">
+    <div class="mt-4 text-xl text-black">
       Sample Rate: {{ samplingProbability }}
     </div>
-    <button @click="bernoulliSample" class="px-4 py-2 border rounded mt-4">
+    <button @click="bernoulliSample" class="px-4 py-2 border rounded mt-4 bg-blue-500 text-white">
       Perform Bernoulli Sampling
     </button>
-    <div v-if="sampledIndices.length > 0" class="mt-4 text-xl">
+    <div v-if="sampledIndices.length > 0" class="mt-4 text-xl text-black">
       Sampled Count: {{ sampledIndices.length }}
     </div>
   </div>
