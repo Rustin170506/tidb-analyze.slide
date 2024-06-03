@@ -244,8 +244,8 @@
 <style>
 	path {
 		stroke-width: 3;
-		stroke: white;
-		fill: rgba(0,0,0,0);
+		stroke: black;
+		fill: white;
 	}
 	text {
 		font: bold 14px monospace;
@@ -275,7 +275,7 @@
 	}
 	rect {
 		stroke-width: 3;
-		stroke: white;
+		stroke: black;
 		fill: black;
 	}
 	rect.group-box {
