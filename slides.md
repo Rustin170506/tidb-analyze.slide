@@ -840,7 +840,7 @@ AE -> AE: update the global statistics to the system tables
 transition: slide-up
 ---
 
-### Analyze Configuration
+### Nobody can really master TiDB analyze.jpg
 
 <div style="font-size: 11px;">
 
