@@ -1,6 +1,6 @@
 ---
-theme: seriph
-background: none
+theme: default
+background: "#white"
 class: text-center
 highlighter: shiki
 lineNumbers: false
@@ -15,6 +15,7 @@ defaults:
   foo: true
 transition: slide-left
 title: TiDB Analyze
+schemaColor: white
 mdc: true
 ---
 
@@ -369,8 +370,6 @@ transition: slide-up
 ```plantuml
 @startuml
 
-skinparam monochrome reverse
-
 "TiDB Owner/Client" as TC -> TiDB: execute analyze statement
 TiDB -> TiKV1: send analyze gRPC request
 TiKV1 -> TiKV1: collect statistics
@@ -511,7 +510,7 @@ Overview
 ```plantuml{ scale: 0.9 }
 @startuml
 
-skinparam monochrome reverse
+
 
 "TiDB Owner/Client" as TC -> TiDB: execute analyze statement
 TiDB -> TiKV1: send analyze gRPC request
@@ -535,7 +534,7 @@ TiDB Perspective - Analyze tables or partitions concurrently
 ```plantuml
 @startuml
 
-skinparam monochrome reverse
+
 
 "Analyze Plan Builder" as APB -> APB: build a analyze plan and \ncreate tasks for each table/partition
 APB -> "Analyze Executor" as AE: store the analyze plan
@@ -566,7 +565,7 @@ TiDB Perspective - Scan regions concurrently
 ```plantuml{ scale: 0.9 }
 @startuml
 
-skinparam monochrome reverse
+
 
 "Analyze Executor" as AE -> AE: open
 group concurrently scan regions
@@ -594,7 +593,7 @@ TiDB Perspective - Merge FMSketches and Sample Data
 
 ```plantuml { scale: 0.9 }
 @startuml
-skinparam monochrome reverse
+
 
 "Analyze Executor" as AE -> AE: create a root row sample collector
 group concurrently merge FMSketches and Sample Data
@@ -673,7 +672,7 @@ TiDB Perspective - Build TopN and Histogram
 ```plantuml
 @startuml
 
-skinparam monochrome reverse
+
 
 "Analyze Executor" as AE -> AE: sort all samples from the root row sample collector
 AE -> AE: send the build task column(index) by column(index)
@@ -789,7 +788,7 @@ TiDB Perspective - Save Statistics
 ```plantuml
 @startuml
 
-skinparam monochrome reverse
+
 
 "Analyze Executor" as AE -> AE: wait for analyze results
 group concurrently save statistics
@@ -813,7 +812,7 @@ TiDB Perspective - Merge Global Statistics
 ```plantuml
 @startuml
 
-skinparam monochrome reverse
+
 
 "Analyze Executor" as AE -> "Async Global Stats Worker" as AW: create a async global statistics worker
 AW -> "IO Worker" as IW: start the IO worker and \nwait for the global statistics task
