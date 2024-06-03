@@ -840,7 +840,7 @@ AE -> AE: update the global statistics to the system tables
 transition: slide-up
 ---
 
-# Configuration
+### Analyze Configuration
 
 <div style="font-size: 11px;">
 
