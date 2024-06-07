@@ -548,7 +548,7 @@ TiDB Perspective - Analyze tables or partitions concurrently
 
 ```plantuml
 @startuml
-"Analyze Plan Builder" as APB -> APB: build a analyze plan and \ncreate tasks for each table/partition
+"Analyze Plan Builder" as APB -> APB: build a analyze plan and create tasks \nfor each table/partition
 APB -> "Analyze Executor" as AE: store the analyze plan
 AE --> APB: success
 
@@ -575,11 +575,8 @@ transition: slide-left
 # Data Structure & Data Flow
 TiDB Perspective - Scan regions concurrently
 
-```plantuml{ scale: 0.9 }
+```plantuml
 @startuml
-
-
-
 "Analyze Executor" as AE -> AE: open
 group concurrently scan regions
   AE -> coprWorker1: start the worker1 and wait for the scan task
