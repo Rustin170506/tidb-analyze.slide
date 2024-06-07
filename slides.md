@@ -353,7 +353,6 @@ func equalRowCountOnColumn(encodedVal []byte...) {
 
 ---
 transition: slide-left
-layout: center
 ---
 
 # Data Structure Overview
@@ -362,12 +361,22 @@ Column Selectivity
 - Not Null Count: The number of not null values in the column.
 - NDV: The number of distinct values in the column.
 
-How to calculate the NDV(Non-Distinct Value)?
+<br/>
+
+### How to calculate the NDV(Non-Distinct Value)?
 
 We use [FMSketch(Flajolet-Martin Sketch)](https://en.wikipedia.org/wiki/Flajolet%E2%80%93Martin_algorithm) to calculate the NDV.
 
+
 ---
 transition: slide-up
+layout: center
+---
+
+# Data Flow Overview
+
+---
+transition: slide-left
 ---
 
 # Data Flow Overview
@@ -403,7 +412,7 @@ In TiKV, we only do two things:
 
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure - FMSketch
@@ -417,7 +426,7 @@ Mathematical Assumptions
 
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure - FMSketch
@@ -432,7 +441,7 @@ Algorithm Principles
    - Use the maximum trailing zero count **R** to estimate the cardinality of the set with the formula $2^R$.
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure - FMSketch
@@ -448,13 +457,13 @@ Example
 
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 <FMSketch/>
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure - Bernoulli Sampling
@@ -469,7 +478,7 @@ Mathematical Assumptions
    - Each sample selection follows a Bernoulli distribution with parameter $p$.
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure - Bernoulli Sampling
@@ -485,7 +494,7 @@ Algorithm Principles
 
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 <BernoulliSampling/>
