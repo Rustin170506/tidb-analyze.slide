@@ -143,6 +143,13 @@ ANALYZE TABLE t COLUMNS c1, c2 WITH 20 TOPN;
 
 ---
 transition: slide-up
+layout: center
+---
+
+# Data Structure Overview
+
+---
+transition: slide-left
 ---
 
 # Data Structure Overview
@@ -170,7 +177,7 @@ await client.close();
 ```
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure Overview
@@ -198,7 +205,7 @@ func equalRowCountOnColumn(encodedVal []byte...) {
 ```
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure Overview
@@ -221,7 +228,7 @@ select * from mysql.stats_top_n order by value limit 5;
 
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure Overview
@@ -249,7 +256,7 @@ func equalRowCountOnColumn(encodedVal []byte...) {
 ```
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure Overview
@@ -273,9 +280,9 @@ from mysql.stats_buckets order by lower_bound desc limit 5;
 
 
 ---
-transition: slide-up
+transition: slide-left
 ---
-# Data Structure
+# Data Structure Overview
 Histogram Bucket
 
 - Bucket ID: The bucket ID of the histogram.
@@ -308,7 +315,7 @@ Histogram Bucket
 ````
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure
@@ -316,7 +323,7 @@ transition: slide-up
 <Histogram/>
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure Overview
@@ -345,7 +352,7 @@ func equalRowCountOnColumn(encodedVal []byte...) {
 ```
 
 ---
-transition: slide-up
+transition: slide-left
 layout: center
 ---
 
@@ -358,7 +365,6 @@ Column Selectivity
 How to calculate the NDV(Non-Distinct Value)?
 
 We use [FMSketch(Flajolet-Martin Sketch)](https://en.wikipedia.org/wiki/Flajolet%E2%80%93Martin_algorithm) to calculate the NDV.
-
 
 ---
 transition: slide-up
