@@ -516,7 +516,7 @@ In TiDB, we do the following things:
 
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure & Data Flow
@@ -540,7 +540,7 @@ TiDB --> TC: return success
 ```
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure & Data Flow
@@ -571,7 +571,7 @@ AE --> AE: merge global statistics if needed
 <div v-click class="absolute top-40 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_build_stats_concurrency </div>
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure & Data Flow
@@ -600,7 +600,7 @@ AE -> AE: build and merge statistics \nand return the analyze result
 <div v-click class="absolute top-40 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_analyze_distsql_scan_concurrency </div>
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure & Data Flow
@@ -625,7 +625,7 @@ AE -> AE: build the TopN and Histogram \nand return analyze result
 <div v-click class="absolute top-40 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_build_sampling_stats_concurrency </div>
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure & Data Flow
@@ -649,7 +649,7 @@ func (s *BernoulliRowSampleCollector) MergeCollector(subCollector RowSampleColle
 ```
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure & Data Flow
@@ -678,7 +678,7 @@ func (s *FMSketch) MergeFMSketch(rs *FMSketch) {
 ```
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure & Data Flow
@@ -705,7 +705,7 @@ AE -> AE: return the analyze result
 
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure & Data Flow
@@ -745,7 +745,7 @@ for sample in samples {
 ```
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure & Data Flow
@@ -794,7 +794,7 @@ for i := int64(1); i < sampleNum; i++ {
 ```
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure & Data Flow
@@ -818,7 +818,7 @@ end
 <div v-click class="absolute top-30 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_analyze_partition_concurrency </div>
 
 ---
-transition: slide-up
+transition: slide-left
 ---
 
 # Data Structure & Data Flow
@@ -872,6 +872,7 @@ transition: slide-up
 </div>
 
 ---
+transition: slide-up
 layout: center
 ---
 
@@ -883,6 +884,7 @@ layout: center
 ## Do you have any questions?
 
 ---
+transition: slide-up
 layout: center
 ---
 
