@@ -209,7 +209,7 @@ transition: slide-left
 ---
 
 # Data Structure Overview
-Wait for a while and then execute the analyze statement.
+Column Selectivity
 
 TopN
 
