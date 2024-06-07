@@ -548,9 +548,6 @@ TiDB Perspective - Analyze tables or partitions concurrently
 
 ```plantuml
 @startuml
-
-
-
 "Analyze Plan Builder" as APB -> APB: build a analyze plan and \ncreate tasks for each table/partition
 APB -> "Analyze Executor" as AE: store the analyze plan
 AE --> APB: success
@@ -564,7 +561,8 @@ AE -> resultHandler: start the result handler and \nwait for the result channel
 resultHandler -> resultHandler: receive the analyze result \nand update statistics to system tables
 AE -> AE: wait for all workers to finish
 end
-AE --> AE: merge global statistics if needed
+AE -> AE: merge global statistics if needed
+AE -> AE: update statistics cache
 @enduml
 ```
 
