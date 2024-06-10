@@ -466,6 +466,14 @@ transition: slide-left
 transition: slide-left
 ---
 
+# Data Structure - FMSketch
+
+<BadFMSketch/>
+
+---
+transition: slide-left
+---
+
 # Data Structure - Bernoulli Sampling
 General Perspective
 
