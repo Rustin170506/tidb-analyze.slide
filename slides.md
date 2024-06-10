@@ -470,6 +470,92 @@ transition: slide-left
 
 <BadFMSketch/>
 
+
+---
+transition: slide-left
+---
+
+# Data Structure - Distinct Sampling
+TiKV Perspective
+
+Mathematical Assumptions
+1. **Decreasing Probabilities:**
+   - Use decreasing probabilities derived from FM sketches.
+2. **Hash Function Distribution:**
+   - Hash function h with $Pr[h(i) = j] = 2^{-j}$ , ensuring uniform distribution over levels.
+
+---
+transition: slide-left
+---
+
+# Data Structure - Distinct Sampling
+TiKV Perspective
+
+Algorithm Principles
+1. **Maintaining the Sample:**
+   - Keep a set of at most k items from the input.
+   - Maintain an integer variable l to record the current sampling level.
+2. **Hash Function Usage:**
+   - Each input item is hashed using function $h$.
+   - Include items in the sample if $h(i) \geq l$.
+
+---
+transition: slide-left
+---
+
+# Data Structure - Distinct Sampling
+TiKV Perspective
+
+Algorithm Steps
+
+1. **Initial Sampling:**
+   - Start with $l = 1$; all distinct items are sampled.
+2. **Sample Pruning:**
+   - When sample exceeds k items, increase $l$ by 1.
+   - Prune items with hash values less than the current level $l$.
+3. **Adjusting Sampling Rate:**
+	•	Each increase in *l* halves the sampling rate.
+	•	Sample size expected to decrease to approximately $k/2$.
+
+---
+transition: slide-left
+---
+
+# Data Structure - Distinct Sampling
+TiKV Perspective
+
+**Example**: Given k = 3
+
+**Levels:**
+1. Level 1: $\{3, 6, 7, 8, 10, 14, 18, 19, 20\}$
+2. Level 2: $\{3, 8, 10, 14, 20\}$
+3. Level 3: $\{3, 10, 14\}$
+4. Level 4: $\{14\}$
+
+**Process:**
+- Start at Level 1: All items are sampled.
+- Move to Level 2: Items 6, 7, 18, 19 are pruned.
+- Move to Level 3: Items 8, 20 are pruned.
+-	Move to Level 4: Items 3, 10 are pruned; only item 14 remains.
+
+---
+transition: slide-left
+---
+
+# Data Structure - Distinct Sampling
+TiKV Perspective
+
+Estimation and Analysis
+
+1. **Cardinality Estimation:**
+   - Estimate distinct items as $s \cdot 2^l$, where s is current sample size.
+2. **Variance Behavior:**
+   - With $k$ items, variance grows with $1/\sqrt{k}$.
+3. **Accuracy:**
+   - Setting $k = O(1/\epsilon^2)$ achieves relative error $\epsilon$ with constant probability.
+   - Using parallel repetitions and taking the median estimate reduces failure probability.
+
+
 ---
 transition: slide-left
 ---
