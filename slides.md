@@ -418,12 +418,25 @@ transition: slide-left
 # Data Structure - FMSketch
 TiKV Perspective
 
-Mathematical Assumptions
+Mathematical Assumptions [^1]
 1. **Independence of Hash Functions**:
    - Assume a good hash function **h(x)** that uniformly distributes input elements over a large range of integers.
 2. **Expectation of Trailing Zeros in Hash Values**:
    - For uniformly distributed hash values, the number of trailing zeros in their binary representation follows a geometric distribution.
 
+[^1]: [Flajolet, Philippe; Martin, G. Nigel (1985). "Probabilistic counting algorithms for data base applications"](https://algo.inria.fr/flajolet/Publications/FlMa85.pdf)
+
+<style>
+.footnotes-sep {
+  margin-top: 1em;
+}
+.footnote-item{
+  font-size: 0.5em;
+}
+.footnote-backref {
+  display: none
+}
+</style>
 
 ---
 transition: slide-left
@@ -478,11 +491,26 @@ transition: slide-left
 # Data Structure - Distinct Sampling
 TiKV Perspective
 
-Mathematical Assumptions
+Mathematical Assumptions [^1]
 1. **Decreasing Probabilities:**
    - Use decreasing probabilities derived from FM sketches.
 2. **Hash Function Distribution:**
    - Hash function h with $Pr[h(i) = j] = 2^{-j}$ , ensuring uniform distribution over levels.
+
+[^1]: [Phillip B. Gibbons. "Distinct Sampling for Highly-Accurate Answers
+to Distinct Values Queries and Event Reports"](https://www.vldb.org/conf/2001/P541.pdf)
+
+<style>
+.footnotes-sep {
+  margin-top: 1em;
+}
+.footnote-item{
+  font-size: 0.5em;
+}
+.footnote-backref {
+  display: none
+}
+</style>
 
 ---
 transition: slide-left
