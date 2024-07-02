@@ -44,6 +44,14 @@ RUSTIN LIU
   </a>
 </div>
 
+<!---
+Thanks for joining me today. I'm Rustin, today I'm gonna talk about TiDB Analyze.
+TiDB Analyze is a feature that collects statistics for the optimizer to generate better query plans.
+If you want to take a look at the source code, you need to go to the TiDB repository and check out the v8.1.0 tag.
+All my examples and algorithms are based on this version.
+Alright, let's get started.
+-->
+
 ---
 transition: slide-up
 ---
