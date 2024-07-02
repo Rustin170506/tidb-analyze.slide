@@ -76,6 +76,12 @@ Tokio Console Maintainer.<br/>
 <div flex="~ gap2">
 </div>
 
+<!---
+First, let me introduce myself. I'm Rustin Liu, a Database Engineer at PingCAP.
+I'm also pretty active in the Rust community. I maintain the Cargo, Crates.io, and Rustup projects.
+I'm also a maintainer of the Tokio Console project.
+-->
+
 ---
 transition: slide-up
 layout: center
@@ -100,6 +106,16 @@ layout: center
   </div>
 </div>
 
+<!---
+
+This is the agenda for today's talk.
+We will start with an overview of the Analyze feature.
+Then we will dive into the data structure and data flow overview.
+We will look at the data structure and data flow from both the TiKV and TiDB perspectives.
+Finally, we will have a Q&A session.
+
+-->
+
 ---
 transition: slide-left
 layout: center
@@ -115,6 +131,21 @@ layout: default
 # Analyze Statement
 
 <img src="/analyze.svg" />
+
+<!---
+
+Alright, let’s break down the basic syntax of the Analyze statement.
+
+First off, you can analyze different parts of your database: tables, partitions, columns, and indexes.
+
+You also have the option to focus only on predicate columns. This means it will analyze the columns used in the conditions of your queries.
+
+Plus, you can tweak a few settings, like specifying the number of top N items or the number of buckets.
+
+Now, let’s dive into some examples to see how it works.
+
+-->
+
 
 ---
 transition: slide-left
