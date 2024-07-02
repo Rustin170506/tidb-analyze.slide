@@ -187,6 +187,14 @@ layout: center
 
 # Data Structure Overview
 
+<!---
+
+After executing the Analyze statement, we’ll generate some statistics.
+
+In this section, we’ll examine the data structure used to store these statistics.
+
+-->
+
 ---
 transition: slide-left
 ---
@@ -214,6 +222,21 @@ for (let i = 0; i < 2000; i++) {
 
 await client.close();
 ```
+
+<!---
+
+Let’s start with a simple example.
+
+First, we’ll create a table named t with a single column a.
+
+Next, we’ll insert 2000 rows into the table.
+
+Notice that we insert the same value twice for every even number.
+
+Keep this example in mind, as we’ll use it later to illustrate the data structure.
+
+-->
+
 
 ---
 transition: slide-left
@@ -243,6 +266,20 @@ func equalRowCountOnColumn(encodedVal []byte...) {
 }
 ```
 
+<!---
+
+Let’s look at a simple query that selects rows where column A equals 100.
+
+This is a basic example of column selectivity, using a simple equality condition. The optimizer estimates that there are 2 rows that match this condition.
+
+The optimizer uses the TopN data structure to make this estimate.
+
+Since the value 100 is in the TopN data structure, the optimizer can quickly determine the number of matching rows.
+
+I want to emphasize that this is a very straightforward example. For more complex queries, the optimizer’s use of statistics is much more intricate.
+
+-->
+
 ---
 transition: slide-left
 ---
@@ -264,6 +301,20 @@ select * from mysql.stats_top_n order by value limit 5;
 | 106       | 0         | 1        | 0x038000800000000006                                                                                                                                                              | 2     |
 | 106       | 0         | 1        | 0x038000800000000008                                                                                                                                                              | 2     |
 
+
+<!---
+
+We use a system table called stats_top_n to store the TopN data structure.
+
+If we query this table, we can see the top N values and their counts.
+
+For example, we can see that the value 0x0380000000000000 is in the TopN data structure with a count of 2.
+
+The 0x038 indicates that the value is an integer.
+
+In this example, the data skew isn’t very high, so all values have the same count.
+
+-->
 
 
 ---
@@ -294,6 +345,22 @@ func equalRowCountOnColumn(encodedVal []byte...) {
 }
 ```
 
+<!---
+
+Now, let’s look at another example.
+
+This time, we’re selecting rows where column a equals 1999.
+
+Since we only collect the first top 500/100 values, the value 1999 isn’t in the TopN data structure.
+
+In this case, the optimizer uses the Histogram data structure to estimate the number of matching rows.
+
+The Histogram data structure shows the distribution of values in the column. By analyzing the histogram, the optimizer can estimate how many rows meet the condition.
+
+So, in this example, the optimizer estimates that only 1 row matches the condition.
+
+-->
+
 ---
 transition: slide-left
 ---
@@ -316,6 +383,23 @@ from mysql.stats_buckets order by lower_bound desc limit 5;
 | 1        | 227        | 9                                                                             | 2                                                                             | 1987                                                                             | 1992                                                                             | 0    |
 | 1        | 226        | 9                                                                             | 2                                                                             | 1981                                                                             | 1986                                                                             | 0    |
 | 1        | 225        | 9                                                                             | 2                                                                             | 1975                                                                             | 1980                                                                             | 0    |
+
+
+<!---
+
+We use a system table called stats_buckets to store the Histogram data structure.
+
+If we query this table, we can see the histogram buckets.
+
+In this example, we can see that the value 1999 is in a histogram bucket with a count of 1.
+
+The lower and upper bounds of this bucket are both 1999.
+
+If we look at the previous bucket, we see it has a count of 9, with a lower bound of 1993.
+
+Additionally, the repeats are 2, meaning there are two repeated values in that bucket.
+
+-->
 
 
 ---
