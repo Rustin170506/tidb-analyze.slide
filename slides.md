@@ -397,7 +397,9 @@ The lower and upper bounds of this bucket are both 1999.
 
 If we look at the previous bucket, we see it has a count of 9, with a lower bound of 1993.
 
-Additionally, the repeats are 2, meaning there are two repeated values in that bucket.
+Additionally, the repeats are 2, meaning there are two repeated values of the upper bound.
+
+We can use this repeated value to estimate the selectivity of the column for an equality condition.
 
 -->
 
@@ -409,8 +411,8 @@ transition: slide-left
 Histogram Bucket
 
 - Bucket ID: The bucket ID of the histogram.
-- Count: The number of rows in the bucket.
-- Repeats: The number of repeated values in the bucket.
+- Count: The number of values till the bucket.(**cumulative**)
+- Repeats: The number of repeated values of the upper bound.
 - Lower Bound: The lower bound of the bucket.
 - Upper Bound: The upper bound of the bucket.
 - NDV: The number of distinct values in the bucket.
@@ -432,7 +434,7 @@ Histogram Bucket
 {
     "bucket_id": 116,
     "count": [1321, 1322, 1322, 1323, 1323, 1324, 1324, 1325, 1326],
-    "repeats": [1322, 1324],
+    "repeats": [1326, 1326],
 }
 ```
 ````
