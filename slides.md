@@ -412,7 +412,7 @@ Histogram Bucket
 
 - Bucket ID: The bucket ID of the histogram.
 - Count: The number of values till the bucket.(**cumulative**)
-- Repeats: The number of repeated values of the upper bound.
+- Repeats: The number of repeated values at the upper bound.
 - Lower Bound: The lower bound of the bucket.
 - Upper Bound: The upper bound of the bucket.
 - NDV: The number of distinct values in the bucket.
@@ -439,13 +439,64 @@ Histogram Bucket
 ```
 ````
 
+<!---
+
+Let’s take a closer look at the histogram bucket.
+
+Bucket ID: The ID of the histogram bucket.
+
+Count: The number of values in the bucket. This is a cumulative count, including all values up to the bucket.
+
+Repeats: The number of repeated values at the upper bound.
+
+Lower Bound: The lower bound of the bucket.
+
+Upper Bound: The upper bound of the bucket.
+
+NDV (Number of Distinct Values): The number of distinct values in the bucket.
+
+In this example, we have a bucket with an ID of 228. The count is 9, and the repeats are 2. The lower bound is 1993, and the upper bound is 1998.
+
+If we break down the count and repeats, we can see the individual values within the bucket.
+
+-->
+
 ---
 transition: slide-left
 ---
 
-# Data Structure
 
-<Histogram/>
+# Data Structure [^1]
+
+
+<Histogram className="histogram"/>
+
+[^1]: [Piatetsky-Shapiro, Gregory, and Charles Connell. "Accurate Estimation Of The Number Of Tuples Satisfying A Condition"](https://dl.acm.org/doi/pdf/10.1145/971697.602294)
+
+<style>
+.histogram {
+  height: 80%;
+}
+.footnotes-sep {
+  margin-top: 1em;
+}
+.footnote-item{
+  font-size: 0.5em;
+}
+.footnote-backref {
+  display: none
+}
+</style>
+
+<!---
+
+As you can see, we use a equi-height histogram to store the data.
+
+The reason we use an equi-height histogram is that it provides a more accurate estimation of the selectivity of the column.
+
+You can find more at this paper.
+
+-->
 
 ---
 transition: slide-left
