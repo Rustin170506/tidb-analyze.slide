@@ -527,6 +527,18 @@ func equalRowCountOnColumn(encodedVal []byte...) {
 }
 ```
 
+<!---
+
+Now, let’s look at another example.
+
+This time, we’re selecting rows where column a equals 9999. Since the value 9999 isn’t in the TopN data structure or the Histogram data structure, the optimizer uses a different method to estimate the number of matching rows.
+
+In this case, the optimizer estimates that 1.33 rows match the condition.
+
+The optimizer uses the NotNullCount and NDV from the Histogram data structure to make this estimate.
+
+-->
+
 ---
 transition: slide-left
 ---
@@ -543,6 +555,16 @@ Column Selectivity
 
 We use [FMSketch(Flajolet-Martin Sketch)](https://en.wikipedia.org/wiki/Flajolet%E2%80%93Martin_algorithm) to calculate the NDV.
 
+
+<!---
+
+The NotNullCount is the number of not null values in the column. The NDV (Number of Distinct Values) is the number of distinct values in the column.
+
+To calculate the NDV, we use the Flajolet-Martin Sketch algorithm. This algorithm provides an efficient way to estimate the number of distinct values in a set.
+
+Before we dive into the details of the algorithm, let’s take a look at the data flow from the TiKV perspective.
+
+-->
 
 ---
 transition: slide-up
