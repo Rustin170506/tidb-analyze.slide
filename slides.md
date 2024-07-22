@@ -595,6 +595,24 @@ TiDB --> TC: return success
 @enduml
 ```
 
+<!---
+
+This is the data flow overview of the Analyze feature.
+
+First, the TiDB owner or client executes the Analyze statement.
+
+Next, TiDB sends an analyze gRPC request to TiKV to collect statistics.
+
+After collecting the statistics, TiKV sends an analyze gRPC response back to TiDB.
+
+Finally, TiDB builds and merges the statistics and updates the system tables.
+
+We use the same coprocessor framework to collect statistics as we do for executing queries. This is a special request handled by the coprocessor.
+
+I won’t go into the details of the coprocessor framework in this talk, but you can find more information in the TiKV repository.
+
+-->
+
 ---
 transition: slide-up
 layout: center
@@ -607,6 +625,15 @@ In TiKV, we only do two things:
 
 1. Calculate the FMSketch.
 2. Sample the data.
+
+<!---
+
+In TiKV, we only do two things:
+
+1.	Calculate the FMSketch: We scan all the data and calculate the FMSketch to estimate the NDV. Note that this is the most expensive part of the process.
+2.	Sample the data: We cannot send all the data to TiDB, so we need to sample it.
+
+-->
 
 
 ---
