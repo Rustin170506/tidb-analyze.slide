@@ -800,6 +800,19 @@ to Distinct Values Queries and Event Reports"](https://www.vldb.org/conf/2001/P5
 }
 </style>
 
+<!---
+
+The Distinct Sampling algorithm is based on the FM sketches.
+
+The mathematical assumptions are similar to those of the FM sketches.
+
+First, we use decreasing probabilities derived from the FM sketches.
+
+Second, we use a hash function h with the property that the probability of h(i) = j is 2^{-j}. This ensures a uniform distribution over levels.
+
+This might seem confusing, but don’t worry. I’ll explain it in more detail in the following slides.
+-->
+
 ---
 transition: slide-left
 ---
@@ -814,6 +827,16 @@ Algorithm Principles
 2. **Hash Function Usage:**
    - Each input item is hashed using function $h$.
    - Include items in the sample if $h(i) \geq l$.
+
+<!---
+
+The Distinct Sampling algorithm maintains a sample of at most k items from the input.
+
+It uses a hash function h to hash each input item.
+
+The algorithm includes items in the sample if the hash value is greater than or equal to the current sampling level l.
+
+-->
 
 ---
 transition: slide-left
@@ -830,8 +853,21 @@ Algorithm Steps
    - When sample exceeds k items, increase $l$ by 1.
    - Prune items with hash values less than the current level $l$.
 3. **Adjusting Sampling Rate:**
-	•	Each increase in *l* halves the sampling rate.
-	•	Sample size expected to decrease to approximately $k/2$.
+   - Each increase in *l* halves the sampling rate.
+   - Sample size expected to decrease to approximately $k/2$.
+
+
+<!---
+
+The Distinct Sampling algorithm consists of three main steps.
+
+First, we start with the initial sampling. We set l to 1, and all distinct items are sampled.
+
+Next, we move to the sample pruning step. When the sample exceeds k items, we increase l by 1. We then prune items with hash values less than the current level l.
+
+Finally, we adjust the sampling rate. Each increase in l halves the sampling rate. The sample size is expected to decrease to approximately k/2.
+
+-->
 
 ---
 transition: slide-left
@@ -854,6 +890,21 @@ TiKV Perspective
 - Move to Level 3: Items 8, 20 are pruned.
 -	Move to Level 4: Items 3, 10 are pruned; only item 14 remains.
 
+<!---
+
+This is an example of the Distinct Sampling algorithm with k = 3.
+
+At level 1, all items are sampled.
+
+At level 2, items 6, 7, 18, and 19 are pruned.
+
+At level 3, items 8 and 20 are pruned.
+
+At level 4, items 3 and 10 are pruned, and only item 14 remains.
+
+The final cardinality estimate is 1 * 2^3 = 8.
+-->
+
 ---
 transition: slide-left
 ---
@@ -871,6 +922,19 @@ Estimation and Analysis
    - Setting $k = O(1/\epsilon^2)$ achieves relative error $\epsilon$ with constant probability.
    - Using parallel repetitions and taking the median estimate reduces failure probability.
 
+<!---
+
+The Distinct Sampling algorithm provides an accurate estimation of the cardinality of the set.
+
+The cardinality is estimated as the current sample size s multiplied by 2^l.
+
+The variance of the estimation grows with 1/\sqrt{k}, where k is the number of items.
+
+To achieve a relative error of epsilon with constant probability, we set k = O(1/\epsilon^2).
+
+By using parallel repetitions and taking the median estimate, we can reduce the failure probability.
+
+-->
 
 ---
 transition: slide-left
