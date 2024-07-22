@@ -663,6 +663,20 @@ Mathematical Assumptions [^1]
 }
 </style>
 
+<!---
+
+Before we dive into the details of the FMSketch implementation, let’s look at the mathematical assumptions.
+
+First, we assume that the hash functions are independent. This means that the hash function h(x) uniformly distributes input elements over a large range of integers.
+
+Second, we assume that the number of trailing zeros in the binary representation of the hash values follows a geometric distribution.
+
+These assumptions are crucial for the accuracy of the FMSketch.
+
+If you want to learn more about the FMSketch algorithm, you can find the original paper in the footnotes.
+
+-->
+
 ---
 transition: slide-left
 ---
@@ -693,12 +707,43 @@ Example
 - Maximum trailing zeros $R = 3$
 - Estimated cardinality: $2^3 = 8$
 
+<!---
+
+Let’s look at an example to illustrate the FMSketch algorithm.
+
+Suppose we have a set with three elements: a, b, and c.
+
+We hash each element using the hash function h(x) and get the hash values 8, 12, and 5.
+
+The binary representations of these hash values are 1000, 1100, and 0101.
+
+The number of trailing zeros in these binary representations are 3, 2, and 0.
+
+The maximum trailing zero count is 3.
+
+Using the formula 2^R, we estimate the cardinality of the set as 8.
+
+This is a simple example to illustrate the FMSketch algorithm.
+
+-->
 
 ---
 transition: slide-left
 ---
 
 <FMSketch/>
+
+<!---
+This is a more detailed example of the FMSketch algorithm.
+
+Click the generate button to see the hash values and trailing zeros for each element.
+
+You’ll see that the maximum trailing zero count is 4, and the estimated cardinality is 16.
+
+This is a perfect example, as the estimated cardinality matches the actual cardinality of the set.
+
+However, in practice, there will be some cases where the estimation is not as accurate.
+-->
 
 ---
 transition: slide-left
@@ -707,6 +752,24 @@ transition: slide-left
 # Data Structure - FMSketch
 
 <BadFMSketch/>
+
+<!---
+
+This time, we have an outlier in the set.
+
+The hash value of the outlier is jj, which has 6 trailing zeros.
+
+The maximum trailing zero count is 6, and the estimated cardinality is 64.
+
+But the actual cardinality of the set is 16.
+
+This is an example where the FMSketch algorithm doesn’t provide an accurate estimation.
+
+To address this issue, we need to use multiple hash functions and take the median estimate.
+
+However, using multiple hash functions increases the computational cost. So, we chose another algorithm called Distinct Sampling to solve this problem.
+
+-->
 
 
 ---
