@@ -749,8 +749,6 @@ However, in practice, there will be some cases where the estimation is not as ac
 transition: slide-left
 ---
 
-# Data Structure - FMSketch
-
 <BadFMSketch/>
 
 <!---
@@ -779,11 +777,15 @@ transition: slide-left
 # Data Structure - Distinct Sampling
 TiKV Perspective
 
-Mathematical Assumptions [^1]
-1. **Decreasing Probabilities:**
-   - Use decreasing probabilities derived from FM sketches.
-2. **Hash Function Distribution:**
-   - Hash function h with $Pr[h(i) = j] = 2^{-j}$ , ensuring uniform distribution over levels.
+Core Principles [^1]
+1. **Hash Function:**
+   - Use a hash function that maps each distinct value to a random `die-level`.
+2. **Sample Maintenance:**
+   - Maintain a sample S of distinct values and a current level `l`.
+3. **Sampling Criterion:**
+   - Keep values in S only if their `die-level ≥ l`.
+4. **Cardinality Estimation:**
+   - Estimate distinct items as $|S| * 2^l$
 
 [^1]: [Phillip B. Gibbons. "Distinct Sampling for Highly-Accurate Answers
 to Distinct Values Queries and Event Reports"](https://www.vldb.org/conf/2001/P541.pdf)
@@ -800,44 +802,6 @@ to Distinct Values Queries and Event Reports"](https://www.vldb.org/conf/2001/P5
 }
 </style>
 
-<!---
-
-The Distinct Sampling algorithm is based on the FM sketches.
-
-The mathematical assumptions are similar to those of the FM sketches.
-
-First, we use decreasing probabilities derived from the FM sketches.
-
-Second, we use a hash function h with the property that the probability of h(i) = j is 2^{-j}. This ensures a uniform distribution over levels.
-
-This might seem confusing, but don’t worry. I’ll explain it in more detail in the following slides.
--->
-
----
-transition: slide-left
----
-
-# Data Structure - Distinct Sampling
-TiKV Perspective
-
-Algorithm Principles
-1. **Maintaining the Sample:**
-   - Keep a set of at most k items from the input.
-   - Maintain an integer variable l to record the current sampling level.
-2. **Hash Function Usage:**
-   - Each input item is hashed using function $h$.
-   - Include items in the sample if $h(i) \geq l$.
-
-<!---
-
-The Distinct Sampling algorithm maintains a sample of at most k items from the input.
-
-It uses a hash function h to hash each input item.
-
-The algorithm includes items in the sample if the hash value is greater than or equal to the current sampling level l.
-
--->
-
 ---
 transition: slide-left
 ---
@@ -846,64 +810,22 @@ transition: slide-left
 TiKV Perspective
 
 Algorithm Steps
-
-1. **Initial Sampling:**
-   - Start with $l = 1$; all distinct items are sampled.
-2. **Sample Pruning:**
-   - When sample exceeds k items, increase $l$ by 1.
-   - Prune items with hash values less than the current level $l$.
-3. **Adjusting Sampling Rate:**
-   - Each increase in *l* halves the sampling rate.
-   - Sample size expected to decrease to approximately $k/2$.
-
-
-<!---
-
-The Distinct Sampling algorithm consists of three main steps.
-
-First, we start with the initial sampling. We set l to 1, and all distinct items are sampled.
-
-Next, we move to the sample pruning step. When the sample exceeds k items, we increase l by 1. We then prune items with hash values less than the current level l.
-
-Finally, we adjust the sampling rate. Each increase in l halves the sampling rate. The sample size is expected to decrease to approximately k/2.
-
--->
+1. **Initialization:**
+   - Start with l = 0 and an empty sample S.
+2. **Processing Each Row:**
+   - For each row r with target attribute value v:
+     - Compute die-level = $h(v)$
+     - If die-level ≥ l:
+       - Add r to S
+3. **Sample Size Control:**
+   - If $|S| > k$, increment l and remove items with die-level < l.
 
 ---
 transition: slide-left
 ---
 
-# Data Structure - Distinct Sampling
-TiKV Perspective
+<FMSketchDemo/>
 
-**Example**: Given k = 3
-
-**Levels:**
-1. Level 1: $\{3, 6, 7, 8, 10, 14, 18, 19, 20\}$
-2. Level 2: $\{3, 8, 10, 14, 20\}$
-3. Level 3: $\{3, 10, 14\}$
-4. Level 4: $\{14\}$
-
-**Process:**
-- Start at Level 1: All items are sampled.
-- Move to Level 2: Items 6, 7, 18, 19 are pruned.
-- Move to Level 3: Items 8, 20 are pruned.
--	Move to Level 4: Items 3, 10 are pruned; only item 14 remains.
-
-<!---
-
-This is an example of the Distinct Sampling algorithm with k = 3.
-
-At level 1, all items are sampled.
-
-At level 2, items 6, 7, 18, and 19 are pruned.
-
-At level 3, items 8 and 20 are pruned.
-
-At level 4, items 3 and 10 are pruned, and only item 14 remains.
-
-The final cardinality estimate is 1 * 2^3 = 8.
--->
 
 ---
 transition: slide-left
@@ -915,26 +837,14 @@ TiKV Perspective
 Estimation and Analysis
 
 1. **Cardinality Estimation:**
-   - Estimate distinct items as $s \cdot 2^l$, where s is current sample size.
-2. **Variance Behavior:**
-   - With $k$ items, variance grows with $1/\sqrt{k}$.
-3. **Accuracy:**
-   - Setting $k = O(1/\epsilon^2)$ achieves relative error $\epsilon$ with constant probability.
-   - Using parallel repetitions and taking the median estimate reduces failure probability.
+   - Estimate distinct items as $|S| * 2^l$
+2. **Accuracy:**
+   - Provides estimates within 0%-10% relative error
+   - Much more accurate than previous sampling methods
+3. **Efficiency:**
+   - Single pass over the data.
+   - Only one hash function required.
 
-<!---
-
-The Distinct Sampling algorithm provides an accurate estimation of the cardinality of the set.
-
-The cardinality is estimated as the current sample size s multiplied by 2^l.
-
-The variance of the estimation grows with 1/\sqrt{k}, where k is the number of items.
-
-To achieve a relative error of epsilon with constant probability, we set k = O(1/\epsilon^2).
-
-By using parallel repetitions and taking the median estimate, we can reduce the failure probability.
-
--->
 
 ---
 transition: slide-left
