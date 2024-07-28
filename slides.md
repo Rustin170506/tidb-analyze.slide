@@ -985,7 +985,17 @@ In TiDB, we do the following things:
 2. Build TopN and Histogram.
 3. Update statistics to system tables.
 
+<!---
 
+After we calculate the FMSketches and sample the data in TiKV, we send the results back to TiDB.
+
+In TiDB, we perform the following steps:
+
+1. Merge all FMSketches and Sample Data.
+2. Build the TopN and Histogram.
+3. Store the statistics in the system tables.
+
+-->
 
 ---
 transition: slide-left
@@ -996,9 +1006,6 @@ Overview
 
 ```plantuml{ scale: 0.9 }
 @startuml
-
-
-
 "TiDB Owner/Client" as TC -> TiDB: execute analyze statement
 TiDB -> TiKV1: send analyze gRPC request
 TiKV1 -> TiKV1: collect statistics
@@ -1010,6 +1017,14 @@ TiDB -> TiDB: build and merge statistics \nand update statistics to system table
 TiDB --> TC: return success
 @enduml
 ```
+
+<!---
+
+We have already seen the data flow from the TiKV perspective.
+
+Now, let’s look at the data flow from the TiDB perspective.
+
+-->
 
 ---
 transition: slide-left
@@ -1040,6 +1055,25 @@ AE -> AE: update statistics cache
 
 <div v-click class="absolute top-40 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_build_stats_concurrency </div>
 
+<!---
+
+This is the data flow for analyzing tables or partitions concurrently in TiDB.
+
+We analyze tables or partitions concurrently to improve the performance of the Analyze feature. For partitioned tables, we may have many partitions, and analyzing them concurrently can significantly reduce the overall time.
+
+Here’s how it works:
+
+1. Build an Analyze Plan: Create tasks for each table or partition.
+2. Start Analyze Workers: Begin the tasks and wait for their completion.
+3. Update Statistics: Once the analysis is done, update the statistics in the system tables.
+4. Merge Global Statistics (if needed): For partitioned tables, merge the statistics from each partition to obtain the global statistics.
+5. Update Statistics Cache: Load the latest statistics into the cache to ensure the query optimizer uses the most up-to-date statistics.
+
+
+The concurrency of the Analyze feature is controlled by the tidb_analyze_version variable. By default, the concurrency is set to 2. You can adjust this variable to increase or decrease the concurrency. I will give an example later.
+
+-->
+
 ---
 transition: slide-left
 ---
@@ -1066,6 +1100,21 @@ AE -> AE: build and merge statistics \nand return the analyze result
 
 <div v-click class="absolute top-40 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_analyze_distsql_scan_concurrency </div>
 
+<!---
+
+Let’s dive into the details of the data flow for scanning regions concurrently in TiDB.
+
+When we analyze a table, we need to scan all the regions in the table to collect statistics. To improve the performance of the Analyze feature, we scan regions concurrently. Here’s how it works:
+
+1. Open the Analyze Executor: Initialize the analyze process.
+2. Start the Coprocessor Workers: Begin the tasks and wait for their completion.
+3. Scan Regions: Send an analyze gRPC request to each region to scan and collect statistics.
+4. Build and Merge Statistics: Once the analysis is done, build and merge the statistics and return the analyze result.
+
+To control the concurrency of scanning regions, you can adjust the tidb_analyze_distsql_scan_concurrency variable. By default, the concurrency is set to 4. You can adjust this variable to increase or decrease the concurrency.
+
+-->
+
 ---
 transition: slide-left
 ---
@@ -1091,6 +1140,21 @@ AE -> AE: build the TopN and Histogram \nand return analyze result
 
 <div v-click class="absolute top-40 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_build_sampling_stats_concurrency </div>
 
+<!---
+
+After receiving all the FMSketches and sample data from TiKV, we need to merge them in TiDB.
+To enhance the performance of the Analyze feature, we merge the FMSketches and sample data concurrently.
+
+Here’s how it works:
+1. Create a Root Row Sample Collector: Initialize the root row sample collector.
+2. Start the Workers: Begin the tasks and wait for their completion.
+3. Merge FMSketches and Sample Data: Merge the FMSketches and sample data into the root row sample collector.
+4. Build the TopN and Histogram: Once the merging is complete, build the TopN and Histogram, and return the analyze result.
+
+To control the concurrency of merging FMSketches and sample data, you can adjust the tidb_build_sampling_stats_concurrency variable. By default, the concurrency is set to 2. You can modify this variable to increase or decrease the concurrency.
+
+-->
+
 ---
 transition: slide-left
 ---
@@ -1114,6 +1178,17 @@ func (s *BernoulliRowSampleCollector) MergeCollector(subCollector RowSampleColle
 	s.MemSize += subCollector.Base().MemSize
 }
 ```
+
+<!---
+
+Now, let me show you a piece of code that merges row sample collectors in TiDB.
+
+This function, called MergeCollector, takes FMSketches, null counts, total sizes, and samples from a sub-collector and merges them into the main row sample collector.
+
+Multiple workers run this function at the same time to combine all the FMSketches and sample data efficiently.
+
+-->
+
 
 ---
 transition: slide-left
@@ -1144,6 +1219,23 @@ func (s *FMSketch) MergeFMSketch(rs *FMSketch) {
 }
 ```
 
+<!---
+
+Let’s break down the merging process for the FMSketch data structure:
+
+If we take a closer look at the FMSketch data structure, we’ll see that the MergeFMSketch function is used to combine two FMSketches.
+
+Here’s how it works:
+
+1. The function starts by picking the larger mask.
+2. It then goes through the hashset and removes any keys that aren’t within the mask range.
+3. Finally, it merges the hashset from the sub-FMSketch into the main FMSketch.
+
+The concept is similar to the original FMSketch algorithm: keep the larger mask and merge the hashsets accordingly.
+
+-->
+
+
 ---
 transition: slide-left
 ---
@@ -1169,6 +1261,22 @@ AE -> AE: return the analyze result
 ```
 
 <div v-click class="absolute top-30 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_build_sampling_stats_concurrency </div>
+
+<!---
+
+After merging the FMSketches and sample data, our next step is to build the TopN and Histogram data structures in TiDB.
+
+To enhance the performance of the Analyze feature, we construct the TopN and Histogram concurrently by column or index. Here’s the process:
+
+1. Sort All Samples: First, we sort all the samples collected in the root row sample collector.
+2. Send Build Tasks: Next, we dispatch build tasks for each column or index.
+3. Start the Builder Workers: We then initiate the builder workers to start these tasks and wait for their completion.
+4. Build TopN and Histogram: For each column or index, we build the TopN and Histogram.
+5. Return the Analyze Result: Finally, once the building is complete, we return the analyze result.
+
+To manage the concurrency of building the TopN and Histogram, you can adjust the tidb_build_sampling_stats_concurrency variable. By default, it’s set to 2, but you can modify this value to increase or decrease the concurrency.
+
+-->
 
 
 ---
@@ -1210,6 +1318,26 @@ for sample in samples {
   curCnt = 1
 }
 ```
+
+<!---
+
+Let’s take a look at the code that builds the TopN data structure in TiDB.
+
+The TopN data structure is used to store the top N most frequent values in a column. Here’s a simplified overview of how it works:
+
+1. Initialize Variables: Start by initializing the topNList and cur variables.
+2. Iterate Through Samples: Loop through each sample.
+3. Increment Counter: If the current sample value matches cur, increment curCnt.
+4. Handle New Values: If the current sample value is different from cur, handle the count of cur.
+5. Find Insert Position: Determine the correct position to insert cur into topNList.
+6. Insert Value: Insert cur into topNList.
+7. Maintain Top N: If topNList exceeds the desired size numTopN, remove the last element.
+8. Update Variables: Update cur and curCnt with the new sample value and its count.
+9. Repeat: Continue this process until all samples have been processed.
+
+This outline simplifies the actual code, which includes additional logic to handle edge cases and ensure robustness.
+
+-->
 
 ---
 transition: slide-left
@@ -1260,6 +1388,26 @@ for i := int64(1); i < sampleNum; i++ {
 }
 ```
 
+<!---
+
+After we get all the TopN values, we build the Histogram data structure in TiDB. We remove the TopN values from the samples before building the Histogram.
+
+The Histogram data structure stores the distribution of values in a column. Here’s a simplified overview of how it works:
+
+1. Initialize Variables: Start by initializing the necessary variables.
+2. Append First Sample: Add the first sample to the histogram.
+3. Iterate Through Samples: Loop through each sample.
+4. Compare Values: Compare the current sample value with the upper bound of the current bucket.
+5. Update Bucket: If the current sample value is within the current bucket, update the bucket.
+6. Store in Next Bucket: If the current sample value is outside the current bucket, store it in the next bucket.
+7. Repeat: Continue this process until all samples have been processed.
+
+This outline simplifies the actual code, which includes additional logic to handle edge cases and ensure robustness.
+
+I have added a lot of comments in the code, you can refer to them for more details.
+
+-->
+
 ---
 transition: slide-left
 ---
@@ -1269,8 +1417,6 @@ TiDB Perspective - Save Statistics
 
 ```plantuml
 @startuml
-
-
 
 "Analyze Executor" as AE -> AE: wait for analyze results
 group concurrently save statistics
@@ -1283,6 +1429,20 @@ end
 ```
 
 <div v-click class="absolute top-30 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_analyze_partition_concurrency </div>
+
+<!---
+
+Finally, after building the TopN and Histogram data structures, we save the statistics to the system tables in TiDB.
+
+To enhance the performance of the Analyze feature, we save the statistics concurrently. Here’s how it works:
+
+1. Wait for Analyze Results: First, we wait for the analyze results to be ready.
+2. Start the Save Workers: We then start the save workers and wait for the save task channel.
+3. Save Statistics: Each save worker saves the analyze result to the system tables concurrently.
+
+The concurrency of saving statistics is controlled by the tidb_analyze_partition_concurrency variable. By default, the concurrency is set to 2. You can adjust this variable to increase or decrease the concurrency.
+
+-->
 
 ---
 transition: slide-left
@@ -1317,6 +1477,23 @@ AE -> AE: update the global statistics to the system tables
 
 <div v-click class="absolute top-30 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_merge_partition_stats_concurrency </div>
 
+<!---
+
+For partitioned tables, we need to merge the statistics from each partition to obtain the global statistics. To enhance the performance of the Analyze feature, we merge the global statistics concurrently in TiDB. Here’s how it works:
+
+1. Create an Async Global Statistics Worker: Initialize the async global statistics worker.
+2. Start the IO Worker: Load the FMSketches, TopN, and Histogram from the system tables for each partition.
+3. Start the CPU Worker: Send the FMSketches, TopN, and Histogram to the CPU worker through the channel.
+4. Merge FMSketches: Receive the FMSketches and merge them into the global FMSketch.
+5. Merge TopN: Receive the TopN and merge them into the global TopN concurrently.
+6. Merge Histogram: Receive the Histogram and merge them into the global Histogram.
+7. Wait for Workers: Wait for the IO worker and CPU worker to finish.
+8. Update the System Tables: Update the global statistics in the system tables.
+
+The concurrency of merging global statistics is controlled by the tidb_merge_partition_stats_concurrency variable. By default, the concurrency is set to 1. You can adjust this variable to increase or decrease the concurrency.
+
+-->
+
 
 ---
 transition: slide-up
@@ -1337,6 +1514,17 @@ transition: slide-up
 | <span class="text-blue-500" v-mark="{ color: 'blue', type: 'underline' }">tidb_merge_partition_stats_concurrency </span>   | The number of concurrent workers to <span class="text-blue-500" v-mark="{ color: 'blue', type: 'underline' }">merge global TopN</span>                                                                                                                                                                                                               | 1             | Global/Session                                                                                                      | TiDB                 |
 
 </div>
+
+
+<!---
+
+Here’s a quick rundown of the configuration settings that control how the Analyze feature runs concurrently in TiDB and TiKV.
+
+I know it looks pretty complex, and I think there’s definitely room for improvement. Some names are so bad that nobody can really get a clear idea of what they do.
+
+I won’t go through each one in detail, but feel free to check them out if you’re interested. Or reach out to me if you have any questions.
+
+-->
 
 ---
 transition: slide-up
