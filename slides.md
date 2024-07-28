@@ -802,6 +802,21 @@ to Distinct Values Queries and Event Reports"](https://www.vldb.org/conf/2001/P5
 }
 </style>
 
+<!---
+
+To address the limitations of the FMSketch algorithm, we use a new algorithm called Distinct Sampling.
+
+The core principles of Distinct Sampling are as follows:
+
+	1.	Hash Function: Use a hash function that maps each distinct value to a random die-level. This is very similar to the FMSketch algorithm.
+	2.	Sample Maintenance: Maintain a sample S of distinct values and a current level l.
+	3.	Sampling Criterion: Keep values in S only if their die-level is greater than or equal to l.
+	4.	Cardinality Estimation: Estimate the number of distinct items as the size of the sample S multiplied by 2^l.
+
+The way we determine the die-level is similar to the FMSketch algorithm. We use a hash function to map each distinct value to a random value and check its binary representation to determine the die-level. If there are no trailing zeros, the die-level is 0. If there is one trailing zero, the die-level is 1, and so on.
+
+-->
+
 ---
 transition: slide-left
 ---
@@ -820,11 +835,40 @@ Algorithm Steps
 3. **Sample Size Control:**
    - If $|S| > k$, increment l and remove items with die-level < l.
 
+<!---
+
+The Distinct Sampling algorithm consists of three main steps:
+
+	1. Initialization
+	  •	Start with l = 0 and an empty sample S.
+	2. Processing Each Row
+	  •	For each row r with the target attribute value v:
+	  •	Compute the die-level using the hash function h(v).
+	  •	If the die-level is greater than or equal to l, add r to the sample S.
+	3. Sample Size Control
+	  •	If the size of the sample S is greater than k, increment l and remove items with a die-level less than l.
+
+-->
+
 ---
 transition: slide-left
 ---
 
 <FMSketchDemo/>
+
+<!---
+
+This is a more detailed example of the Distinct Sampling algorithm.
+
+We can use it to illustrate the algorithm steps.
+
+Every time you click the “Next” button, we will process a new row.
+
+The sample size is set to 8, so we will increment the die-level when the sample size exceeds 8.
+
+As you can see, even with an outlier in the set, the estimated cardinality remains accurate.
+
+-->
 
 
 ---
@@ -844,6 +888,18 @@ Estimation and Analysis
 3. **Efficiency:**
    - Single pass over the data.
    - Only one hash function required.
+
+<!---
+
+The Distinct Sampling algorithm provides a more accurate estimation of the number of distinct items in a set.
+
+The cardinality estimation is calculated as the size of the sample S multiplied by 2^l.
+
+The algorithm provides estimates within a 0% to 10% relative error, making it much more accurate than previous sampling methods.
+
+The algorithm is also efficient, as it only requires a single pass over the data and one hash function.
+
+-->
 
 
 ---
