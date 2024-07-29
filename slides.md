@@ -15,7 +15,7 @@ defaults:
   foo: true
 transition: slide-left
 title: TiDB Analyze
-schemaColor: white
+colorSchema: light
 mdc: true
 ---
 
