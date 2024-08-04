@@ -26,6 +26,9 @@ importers:
       vue:
         specifier: ^3.4.33
         version: 3.4.33(typescript@5.5.3)
+      vue-chartjs:
+        specifier: ^5.3.1
+        version: 5.3.1(chart.js@4.4.3)(vue@3.4.33(typescript@5.5.3))
 
 packages:
 
@@ -2675,6 +2678,12 @@ packages:
     peerDependenciesMeta:
       vite:
         optional: true
+
+  vue-chartjs@5.3.1:
+    resolution: {integrity: sha512-rZjqcHBxKiHrBl0CIvcOlVEBwRhpWAVf6rDU3vUfa7HuSRmGtCslc0Oc8m16oAVuk0erzc1FCtH1VCriHsrz+A==}
+    peerDependencies:
+      chart.js: ^4.1.1
+      vue: ^3.0.0-0 || ^2.7.0
 
   vue-demi@0.14.8:
     resolution: {integrity: sha512-Uuqnk9YE9SsWeReYqK2alDI5YzciATE0r2SkA6iMAtuXvNTMNACJLJEXNXaEy94ECuBe4Sk6RzRU80kjdbIo1Q==}
@@ -6081,6 +6090,11 @@ snapshots:
   vitefu@0.2.5(vite@5.3.4(@types/node@18.19.41)):
     optionalDependencies:
       vite: 5.3.4(@types/node@18.19.41)
+
+  vue-chartjs@5.3.1(chart.js@4.4.3)(vue@3.4.33(typescript@5.5.3)):
+    dependencies:
+      chart.js: 4.4.3
+      vue: 3.4.33(typescript@5.5.3)
 
   vue-demi@0.14.8(vue@3.4.33(typescript@5.5.3)):
     dependencies:

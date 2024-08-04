@@ -13,6 +13,7 @@
     "@slidev/theme-default": "latest",
     "@slidev/theme-seriph": "latest",
     "chart.js": "^4.4.3",
-    "vue": "^3.4.33"
+    "vue": "^3.4.33",
+    "vue-chartjs": "^5.3.1"
   }
 }

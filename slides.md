@@ -78,8 +78,7 @@ Tokio Console Maintainer.<br/>
 
 <!---
 First, let me introduce myself. I'm Rustin Liu, a Database Engineer at PingCAP.
-I'm also pretty active in the Rust community. I maintain the Cargo, Crates.io, and Rustup projects.
-I'm also a maintainer of the Tokio Console project.
+I'm also pretty active in the Rust community. So, if you have any questions about the Rust toolchain, feel free to ask me.
 -->
 
 ---
@@ -138,7 +137,7 @@ Alright, let’s break down the basic syntax of the Analyze statement.
 
 First off, you can analyze different parts of your database: tables, partitions, columns, and indexes.
 
-You also have the option to focus only on predicate columns. This means it will analyze the columns used in the conditions of your queries.
+You also have the option to focus only on predicate columns. This means it will analyze the columns used in the where clause of your queries.
 
 Plus, you can tweak a few settings, like specifying the number of top N items or the number of buckets.
 
@@ -274,9 +273,7 @@ This is a basic example of column selectivity, using a simple equality condition
 
 The optimizer uses the TopN data structure to make this estimate.
 
-Since the value 100 is in the TopN data structure, the optimizer can quickly determine the number of matching rows.
-
-I want to emphasize that this is a very straightforward example. For more complex queries, the optimizer’s use of statistics is much more intricate.
+The value 100 is in the TopN data structure, because it’s an even number and we inserted it twice.
 
 -->
 
@@ -399,7 +396,7 @@ If we look at the previous bucket, we see it has a count of 9, with a lower boun
 
 Additionally, the repeats are 2, meaning there are two repeated values of the upper bound.
 
-We can use this repeated value to estimate the selectivity of the column for an equality condition.
+We can use this repeated value to estimate the selectivity of the column for an equality condition. Is is kind of like a special TopN in the histogram.
 
 -->
 
@@ -723,8 +720,6 @@ The maximum trailing zero count is 3.
 
 Using the formula 2^R, we estimate the cardinality of the set as 8.
 
-This is a simple example to illustrate the FMSketch algorithm.
-
 -->
 
 ---
@@ -1026,6 +1021,42 @@ Now, let’s look at the data flow from the TiDB perspective.
 
 -->
 
+
+---
+transition: slide-up
+---
+
+### Nobody can really master TiDB analyze.jpg
+
+<div style="font-size: 11px;">
+
+| Configuration Name                                                                                                         | Description                                                                                                                                                                                                                                                                                                                                          | Default Value | Scope                                                                                                               | Affected Component   |
+| :------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------ | :------------------------------------------------------------------------------------------------------------------ | :------------------- |
+| <span class="text-red-500" v-mark="{ color: 'red', type: 'underline' }">tidb_build_stats_concurrency</span>                | The number of concurrent workers to analyze <span class="text-red-500" v-mark="{ color: 'red', type: 'underline' }">tables or partitions</span>                                                                                                                                                                                                      | 2             | Global/Session                                                                                                      | TiDB + TiKV          |
+| <span class="text-red-500" v-mark="{ color: 'red', type: 'underline' }">tidb_auto_build_stats_concurrency</span>           | The number of concurrent workers to <span class="text-red-500" v-mark="{ color: 'red', type: 'underline' }">automatically analyze tables or partitions</span>                                                                                                                                                                                        | 1             | Global (only for auto analyze)                                                                                      | TiDB (Owner)  + TiKV |
+| <span class="text-orange-500" v-mark="{ color: 'orange', type: 'underline' }">tidb_analyze_distsql_scan_concurrency</span> | The number of concurrent workers to <span class="text-orange-500" v-mark="{ color: 'orange', type: 'underline' }">scan regions</span>                                                                                                                                                                                                                | 4             | Global/Session                                                                                                      | TiKV                 |
+| tidb_sysproc_scan_concurrency                                                                                              | The number of concurrent workers to scan regions                                                                                                                                                                                                                                                                                                     | 1             | <span class="text-orange-500" v-mark="{ color: 'orange', type: 'underline' }">Global (only for auto analyze)</span> | TiKV                 |
+| <span class="text-purple-500" v-mark="{ color: 'purple', type: 'underline' }">tidb_build_sampling_stats_concurrency</span> | 1. The number of concurrent workers to <span class="text-purple-500" v-mark="{ color: 'purple', type: 'underline' }">merge FMSketches and Sample Data</span> from different regions <br/> <br/> 2. The number of concurrent workers to <span class="text-purple-500" v-mark="{ color: 'purple', type: 'underline' }">build TopN and Histogram</span> | 2             | Global/Session                                                                                                      | TiDB                 |
+| <span class="text-green-500" v-mark="{ color: 'green', type: 'underline' }">tidb_analyze_partition_concurrency</span>      | The number of concurrent workers to <span class="text-green-500" v-mark="{ color: 'green', type: 'underline' }">save statistics to the system tables</span>                                                                                                                                                                                          | 2             | Global/Session                                                                                                      | TiDB                 |
+| <span class="text-blue-500" v-mark="{ color: 'blue', type: 'underline' }">tidb_merge_partition_stats_concurrency </span>   | The number of concurrent workers to <span class="text-blue-500" v-mark="{ color: 'blue', type: 'underline' }">merge global TopN</span>                                                                                                                                                                                                               | 1             | Global/Session                                                                                                      | TiDB                 |
+
+</div>
+
+
+<!---
+
+Before I start to show your all detailed process, I want to emphasize this module is really complex.
+
+Here’s a quick rundown of the configuration settings that control how the Analyze feature runs concurrently in TiDB and TiKV.
+
+I know it looks pretty complex, and I think there’s definitely room for improvement. Some names are so bad that nobody can really get a clear idea of what they do.
+
+So don’t worry if you don’t understand everything right away. I’ll explain each configuration setting in detail. But even for me, it took a while to understand how everything works together.
+
+So let’s dive into the details.
+
+-->
+
 ---
 transition: slide-left
 ---
@@ -1070,7 +1101,7 @@ Here’s how it works:
 5. Update Statistics Cache: Load the latest statistics into the cache to ensure the query optimizer uses the most up-to-date statistics.
 
 
-The concurrency of the Analyze feature is controlled by the tidb_analyze_version variable. By default, the concurrency is set to 2. You can adjust this variable to increase or decrease the concurrency. I will give an example later.
+The concurrency of the Analyze feature is controlled by the tidb_analyze_version variable. By default, the concurrency is set to 2.
 
 -->
 
@@ -1111,7 +1142,7 @@ When we analyze a table, we need to scan all the regions in the table to collect
 3. Scan Regions: Send an analyze gRPC request to each region to scan and collect statistics.
 4. Build and Merge Statistics: Once the analysis is done, build and merge the statistics and return the analyze result.
 
-To control the concurrency of scanning regions, you can adjust the tidb_analyze_distsql_scan_concurrency variable. By default, the concurrency is set to 4. You can adjust this variable to increase or decrease the concurrency.
+To control the concurrency of scanning regions, you can adjust the tidb_analyze_distsql_scan_concurrency variable. By default, the concurrency is set to 4.
 
 -->
 
@@ -1151,44 +1182,9 @@ Here’s how it works:
 3. Merge FMSketches and Sample Data: Merge the FMSketches and sample data into the root row sample collector.
 4. Build the TopN and Histogram: Once the merging is complete, build the TopN and Histogram, and return the analyze result.
 
-To control the concurrency of merging FMSketches and sample data, you can adjust the tidb_build_sampling_stats_concurrency variable. By default, the concurrency is set to 2. You can modify this variable to increase or decrease the concurrency.
+To control the concurrency of merging FMSketches and sample data, you can adjust the tidb_build_sampling_stats_concurrency variable. By default, the concurrency is set to 2.
 
 -->
-
----
-transition: slide-left
----
-
-# Data Structure & Data Flow
-TiDB Perspective - Merge Collector
-
-```go{all|3-5|12}
-func (s *BernoulliRowSampleCollector) MergeCollector(subCollector RowSampleCollector) {
-	s.Count += subCollector.Base().Count
-	for i := range subCollector.Base().FMSketches {
-		s.FMSketches[i].MergeFMSketch(subCollector.Base().FMSketches[i])
-	}
-	for i := range subCollector.Base().NullCount {
-		s.NullCount[i] += subCollector.Base().NullCount[i]
-	}
-	for i := range subCollector.Base().TotalSizes {
-		s.TotalSizes[i] += subCollector.Base().TotalSizes[i]
-	}
-	s.baseCollector.Samples = append(s.baseCollector.Samples, subCollector.Base().Samples...)
-	s.MemSize += subCollector.Base().MemSize
-}
-```
-
-<!---
-
-Now, let me show you a piece of code that merges row sample collectors in TiDB.
-
-This function, called MergeCollector, takes FMSketches, null counts, total sizes, and samples from a sub-collector and merges them into the main row sample collector.
-
-Multiple workers run this function at the same time to combine all the FMSketches and sample data efficiently.
-
--->
-
 
 ---
 transition: slide-left
@@ -1245,9 +1241,6 @@ TiDB Perspective - Build TopN and Histogram
 
 ```plantuml
 @startuml
-
-
-
 "Analyze Executor" as AE -> AE: sort all samples from the root row sample collector
 AE -> AE: send the build task column(index) by column(index)
 group concurrently build TopN and Histogram
@@ -1274,139 +1267,24 @@ To enhance the performance of the Analyze feature, we construct the TopN and His
 4. Build TopN and Histogram: For each column or index, we build the TopN and Histogram.
 5. Return the Analyze Result: Finally, once the building is complete, we return the analyze result.
 
-To manage the concurrency of building the TopN and Histogram, you can adjust the tidb_build_sampling_stats_concurrency variable. By default, it’s set to 2, but you can modify this value to increase or decrease the concurrency.
+To manage the concurrency of building the TopN and Histogram, you can adjust the tidb_build_sampling_stats_concurrency variable. By default, it’s set to 2.
 
 -->
 
 
 ---
 transition: slide-left
+layout: center
 ---
 
-# Data Structure & Data Flow
-TiDB Perspective - Build TopN
+<TopNAnimation />
 
-```go {all}{lines:true,maxHeight:'400px'}
-// Initialize topNList and cur
-topNList := []
-cur := samples[0].Value
-curCnt := 0
-// Iterate through the samples
-for sample in samples {
-  sampleBytes := sample.Value
-  // If the current sample value is the same as cur, increment curCnt
-  if sampleBytes == cur {
-    curCnt++
-    continue
-  }
-  // If the current sample value is different from cur, handle the count of cur
-  if len(topNList) == 0 || curCnt > topNList[-1].Count {
-    // Find the position to insert cur
-    j := len(topNList)
-    for j > 0 && curCnt < topNList[j-1].Count {
-      j--
-    }
-    // Insert cur into topNList
-    topNList.insert(j, {Encoded: cur, Count: curCnt})
-    // If the length of topNList exceeds numTopN, remove the last element
-    if len(topNList) > numTopN {
-      topNList = topNList[:numTopN]
-    }
-  }
-  // Update cur and curCnt
-  cur = sampleBytes
-  curCnt = 1
-}
-```
-
-<!---
-
-Let’s take a look at the code that builds the TopN data structure in TiDB.
-
-The TopN data structure is used to store the top N most frequent values in a column. Here’s a simplified overview of how it works:
-
-1. Initialize Variables: Start by initializing the topNList and cur variables.
-2. Iterate Through Samples: Loop through each sample.
-3. Increment Counter: If the current sample value matches cur, increment curCnt.
-4. Handle New Values: If the current sample value is different from cur, handle the count of cur.
-5. Find Insert Position: Determine the correct position to insert cur into topNList.
-6. Insert Value: Insert cur into topNList.
-7. Maintain Top N: If topNList exceeds the desired size numTopN, remove the last element.
-8. Update Variables: Update cur and curCnt with the new sample value and its count.
-9. Repeat: Continue this process until all samples have been processed.
-
-This outline simplifies the actual code, which includes additional logic to handle edge cases and ensure robustness.
-
--->
 
 ---
 transition: slide-left
 ---
 
-# Data Structure & Data Flow
-TiDB Perspective - Build Histogram
-
-```go {all}{lines:true,maxHeight:'400px'}
-// Initialize variables
-sampleNum := int64(len(samples))
-sampleFactor := float64(count) / float64(sampleNum)
-ndvFactor := float64(count) / float64(ndv)
-if ndvFactor > sampleFactor {
-    ndvFactor = sampleFactor
-}
-valuesPerBucket := float64(count)/float64(numBuckets) + sampleFactor
-bucketIdx := 0
-var lastCount int64
-// Append first sample to histogram
-hg.AppendBucket(&samples[0].Value, &samples[0].Value, int64(sampleFactor), int64(ndvFactor))
-// Iterate through the samples
-for i := int64(1); i < sampleNum; i++ {
-    upper := new(types.Datum)
-    hg.UpperToDatum(bucketIdx, upper)
-    cmp, err := upper.Compare(sc.TypeCtx(), &samples[i].Value, collate.GetBinaryCollator())
-    if err != nil {
-        return 0, errors.Trace(err)
-    }
-    totalCount := float64(i+1) * sampleFactor
-    // Same value as current bucket value
-    if cmp == 0 {
-        hg.Buckets[bucketIdx].Count = int64(totalCount)
-        if hg.Buckets[bucketIdx].Repeat == int64(ndvFactor) {
-            hg.Buckets[bucketIdx].Repeat = int64(2 * sampleFactor)
-        } else {
-            hg.Buckets[bucketIdx].Repeat += int64(sampleFactor)
-        }
-    } else if totalCount-float64(lastCount) <= valuesPerBucket {
-        // Update current bucket
-        hg.updateLastBucket(&samples[i].Value, int64(totalCount), int64(ndvFactor), false)
-    } else {
-        // Store in the next bucket
-        lastCount = hg.Buckets[bucketIdx].Count
-        bucketIdx++
-        hg.AppendBucket(&samples[i].Value, &samples[i].Value, int64(totalCount), int64(ndvFactor))
-    }
-}
-```
-
-<!---
-
-After we get all the TopN values, we build the Histogram data structure in TiDB. We remove the TopN values from the samples before building the Histogram.
-
-The Histogram data structure stores the distribution of values in a column. Here’s a simplified overview of how it works:
-
-1. Initialize Variables: Start by initializing the necessary variables.
-2. Append First Sample: Add the first sample to the histogram.
-3. Iterate Through Samples: Loop through each sample.
-4. Compare Values: Compare the current sample value with the upper bound of the current bucket.
-5. Update Bucket: If the current sample value is within the current bucket, update the bucket.
-6. Store in Next Bucket: If the current sample value is outside the current bucket, store it in the next bucket.
-7. Repeat: Continue this process until all samples have been processed.
-
-This outline simplifies the actual code, which includes additional logic to handle edge cases and ensure robustness.
-
-I have added a lot of comments in the code, you can refer to them for more details.
-
--->
+<HistogramAnimation />
 
 ---
 transition: slide-left
@@ -1491,38 +1369,6 @@ For partitioned tables, we need to merge the statistics from each partition to o
 8. Update the System Tables: Update the global statistics in the system tables.
 
 The concurrency of merging global statistics is controlled by the tidb_merge_partition_stats_concurrency variable. By default, the concurrency is set to 1. You can adjust this variable to increase or decrease the concurrency.
-
--->
-
-
----
-transition: slide-up
----
-
-### Nobody can really master TiDB analyze.jpg
-
-<div style="font-size: 11px;">
-
-| Configuration Name                                                                                                         | Description                                                                                                                                                                                                                                                                                                                                          | Default Value | Scope                                                                                                               | Affected Component   |
-| :------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------ | :------------------------------------------------------------------------------------------------------------------ | :------------------- |
-| <span class="text-red-500" v-mark="{ color: 'red', type: 'underline' }">tidb_build_stats_concurrency</span>                | The number of concurrent workers to analyze <span class="text-red-500" v-mark="{ color: 'red', type: 'underline' }">tables or partitions</span>                                                                                                                                                                                                      | 2             | Global/Session                                                                                                      | TiDB + TiKV          |
-| <span class="text-red-500" v-mark="{ color: 'red', type: 'underline' }">tidb_auto_build_stats_concurrency</span>           | The number of concurrent workers to <span class="text-red-500" v-mark="{ color: 'red', type: 'underline' }">automatically analyze tables or partitions</span>                                                                                                                                                                                        | 1             | Global (only for auto analyze)                                                                                      | TiDB (Owner)  + TiKV |
-| <span class="text-orange-500" v-mark="{ color: 'orange', type: 'underline' }">tidb_analyze_distsql_scan_concurrency</span> | The number of concurrent workers to <span class="text-orange-500" v-mark="{ color: 'orange', type: 'underline' }">scan regions</span>                                                                                                                                                                                                                | 4             | Global/Session                                                                                                      | TiKV                 |
-| tidb_sysproc_scan_concurrency                                                                                              | The number of concurrent workers to scan regions                                                                                                                                                                                                                                                                                                     | 1             | <span class="text-orange-500" v-mark="{ color: 'orange', type: 'underline' }">Global (only for auto analyze)</span> | TiKV                 |
-| <span class="text-purple-500" v-mark="{ color: 'purple', type: 'underline' }">tidb_build_sampling_stats_concurrency</span> | 1. The number of concurrent workers to <span class="text-purple-500" v-mark="{ color: 'purple', type: 'underline' }">merge FMSketches and Sample Data</span> from different regions <br/> <br/> 2. The number of concurrent workers to <span class="text-purple-500" v-mark="{ color: 'purple', type: 'underline' }">build TopN and Histogram</span> | 2             | Global/Session                                                                                                      | TiDB                 |
-| <span class="text-green-500" v-mark="{ color: 'green', type: 'underline' }">tidb_analyze_partition_concurrency</span>      | The number of concurrent workers to <span class="text-green-500" v-mark="{ color: 'green', type: 'underline' }">save statistics to the system tables</span>                                                                                                                                                                                          | 2             | Global/Session                                                                                                      | TiDB                 |
-| <span class="text-blue-500" v-mark="{ color: 'blue', type: 'underline' }">tidb_merge_partition_stats_concurrency </span>   | The number of concurrent workers to <span class="text-blue-500" v-mark="{ color: 'blue', type: 'underline' }">merge global TopN</span>                                                                                                                                                                                                               | 1             | Global/Session                                                                                                      | TiDB                 |
-
-</div>
-
-
-<!---
-
-Here’s a quick rundown of the configuration settings that control how the Analyze feature runs concurrently in TiDB and TiKV.
-
-I know it looks pretty complex, and I think there’s definitely room for improvement. Some names are so bad that nobody can really get a clear idea of what they do.
-
-I won’t go through each one in detail, but feel free to check them out if you’re interested. Or reach out to me if you have any questions.
 
 -->
 
