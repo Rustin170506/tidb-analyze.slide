@@ -1021,24 +1021,40 @@ Now, let’s look at the data flow from the TiDB perspective.
 
 -->
 
-
 ---
-transition: slide-up
+transition: slide-left
 ---
 
-### Nobody can really master TiDB analyze.jpg
+# A question for you
 
 <div style="font-size: 11px;">
 
-| Configuration Name                                                                                                         | Description                                                                                                                                                                                                                                                                                                                                          | Default Value | Scope                                                                                                               | Affected Component   |
-| :------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------ | :------------------------------------------------------------------------------------------------------------------ | :------------------- |
-| <span class="text-red-500" v-mark="{ color: 'red', type: 'underline' }">tidb_build_stats_concurrency</span>                | The number of concurrent workers to analyze <span class="text-red-500" v-mark="{ color: 'red', type: 'underline' }">tables or partitions</span>                                                                                                                                                                                                      | 2             | Global/Session                                                                                                      | TiDB + TiKV          |
-| <span class="text-red-500" v-mark="{ color: 'red', type: 'underline' }">tidb_auto_build_stats_concurrency</span>           | The number of concurrent workers to <span class="text-red-500" v-mark="{ color: 'red', type: 'underline' }">automatically analyze tables or partitions</span>                                                                                                                                                                                        | 1             | Global (only for auto analyze)                                                                                      | TiDB (Owner)  + TiKV |
-| <span class="text-orange-500" v-mark="{ color: 'orange', type: 'underline' }">tidb_analyze_distsql_scan_concurrency</span> | The number of concurrent workers to <span class="text-orange-500" v-mark="{ color: 'orange', type: 'underline' }">scan regions</span>                                                                                                                                                                                                                | 4             | Global/Session                                                                                                      | TiKV                 |
-| tidb_sysproc_scan_concurrency                                                                                              | The number of concurrent workers to scan regions                                                                                                                                                                                                                                                                                                     | 1             | <span class="text-orange-500" v-mark="{ color: 'orange', type: 'underline' }">Global (only for auto analyze)</span> | TiKV                 |
-| <span class="text-purple-500" v-mark="{ color: 'purple', type: 'underline' }">tidb_build_sampling_stats_concurrency</span> | 1. The number of concurrent workers to <span class="text-purple-500" v-mark="{ color: 'purple', type: 'underline' }">merge FMSketches and Sample Data</span> from different regions <br/> <br/> 2. The number of concurrent workers to <span class="text-purple-500" v-mark="{ color: 'purple', type: 'underline' }">build TopN and Histogram</span> | 2             | Global/Session                                                                                                      | TiDB                 |
-| <span class="text-green-500" v-mark="{ color: 'green', type: 'underline' }">tidb_analyze_partition_concurrency</span>      | The number of concurrent workers to <span class="text-green-500" v-mark="{ color: 'green', type: 'underline' }">save statistics to the system tables</span>                                                                                                                                                                                          | 2             | Global/Session                                                                                                      | TiDB                 |
-| <span class="text-blue-500" v-mark="{ color: 'blue', type: 'underline' }">tidb_merge_partition_stats_concurrency </span>   | The number of concurrent workers to <span class="text-blue-500" v-mark="{ color: 'blue', type: 'underline' }">merge global TopN</span>                                                                                                                                                                                                               | 1             | Global/Session                                                                                                      | TiDB                 |
+| TableSize(Rows) | Partitions Number | Config                                                                                                                                                                 | Analyze Duration(Total)                                                                                | Per Partition | Merge Global Stats | Explanation                                                        |
+| --------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------- | ------------------ | ------------------------------------------------------------------ |
+| 3m              | 0                 | /                                                                                                                                                                      | 47.88 sec                                                                                              | /             | 0                  | A table has only one task, so the parameters have no effect on it. |
+| 3m              | 10                | tidb_build_stats_concurrency = 2 <br/> tidb_analyze_partition_concurrency = 2                                                                                          | 2 min 17.82 sec                                                                                        | 30 sec        | 23 sec             | 10 partitions can still be handled by this degree of concurrency.  |
+| 3m              | 100               | <span class="text-red-500" v-mark="{ at: 1, color: 'orange', type: 'underline' }">tidb_build_stats_concurrency = 2</span> <br/> tidb_analyze_partition_concurrency = 2 | <span class="text-red-500" v-mark="{ at: 1, color: 'orange', type: 'circle' }">25 min 47.51 sec</span> | 1min 34 sec   | 6 min 5 sec        | 100 partitions is too slow.                                        |
+| 3m              | 100               | <span class="text-red-500" v-mark="{ at: 2, color: 'red', type: 'underline' }">tidb_build_stats_concurrency = 15</span> <br/> tidb_analyze_partition_concurrency = 2   | <span class="text-red-500" v-mark="{ at: 2, color: 'red', type: 'circle' }">25 min 46.47 sec</span>    | 1min 34 sec   | 6 min 5 sec        | <Scratch />                                                        |
+
+</div>
+
+---
+transition: slide-left
+---
+
+### 🤡Nobody can really master TiDB analyze.jpg
+
+<div style="font-size: 11px;">
+
+| Configuration Name                                                                                                                | Description                                                                                                                                                                                                                                                                                                                                                        | Default Value | Scope                                                                                                                      | Affected Component   |
+| :-------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------ | :------------------------------------------------------------------------------------------------------------------------- | :------------------- |
+| <span class="text-red-500" v-mark="{ at: 1, color: 'red', type: 'underline' }">tidb_build_stats_concurrency</span>                | The number of concurrent workers to analyze <span class="text-red-500" v-mark="{ at: 1, color: 'red', type: 'underline' }">tables or partitions</span>                                                                                                                                                                                                             | 2             | Global/Session                                                                                                             | TiDB + TiKV          |
+| <span class="text-red-500" v-mark="{ at: 1, color: 'red', type: 'underline' }">tidb_auto_build_stats_concurrency</span>           | The number of concurrent workers to <span class="text-red-500" v-mark="{ at: 1, color: 'red', type: 'underline' }">automatically analyze tables or partitions</span>                                                                                                                                                                                               | 1             | Global (only for auto analyze)                                                                                             | TiDB (Owner)  + TiKV |
+| <span class="text-orange-500" v-mark="{ at: 1, color: 'orange', type: 'underline' }">tidb_analyze_distsql_scan_concurrency</span> | The number of concurrent workers to <span class="text-orange-500" v-mark="{ at: 1, color: 'orange', type: 'underline' }">scan regions</span>                                                                                                                                                                                                                       | 4             | Global/Session                                                                                                             | TiKV                 |
+| tidb_sysproc_scan_concurrency                                                                                                     | The number of concurrent workers to scan regions                                                                                                                                                                                                                                                                                                                   | 1             | <span class="text-orange-500" v-mark="{ at: 1, color: 'orange', type: 'underline' }">Global (only for auto analyze)</span> | TiKV                 |
+| <span class="text-purple-500" v-mark="{ at: 1, color: 'purple', type: 'underline' }">tidb_build_sampling_stats_concurrency</span> | 1. The number of concurrent workers to <span class="text-purple-500" v-mark="{ at: 1, color: 'purple', type: 'underline' }">merge FMSketches and Sample Data</span> from different regions <br/> <br/> 2. The number of concurrent workers to <span class="text-purple-500" v-mark="{ at: 1, color: 'purple', type: 'underline' }">build TopN and Histogram</span> | 2             | Global/Session                                                                                                             | TiDB                 |
+| <span class="text-green-500" v-mark="{ at: 1, color: 'green', type: 'underline' }">tidb_analyze_partition_concurrency</span>      | The number of concurrent workers to <span class="text-green-500" v-mark="{ at: 1, color: 'green', type: 'underline' }">save statistics to the system tables</span>                                                                                                                                                                                                 | 2             | Global/Session                                                                                                             | TiDB                 |
+| <span class="text-blue-500" v-mark="{ at: 1, color: 'blue', type: 'underline' }">tidb_merge_partition_stats_concurrency </span>   | The number of concurrent workers to <span class="text-blue-500" v-mark="{ at: 1, color: 'blue', type: 'underline' }">merge global TopN</span>                                                                                                                                                                                                                      | 1             | Global/Session                                                                                                             | TiDB                 |
 
 </div>
 
@@ -1236,6 +1252,7 @@ layout: center
 
 ---
 transition: slide-left
+layout: center
 ---
 
 <HistogramAnimation />
@@ -1325,6 +1342,49 @@ For partitioned tables, we need to merge the statistics from each partition to o
 The concurrency of merging global statistics is controlled by the tidb_merge_partition_stats_concurrency variable. By default, the concurrency is set to 1. You can adjust this variable to increase or decrease the concurrency.
 
 -->
+
+---
+transition: slide-left
+---
+
+# The question
+
+<div style="font-size: 11px;">
+
+| TableSize(Rows) | Partitions Number | Config                                                                                                                                                                 | Analyze Duration(Total)                                                                                | Per Partition | Merge Global Stats | Explanation                                                                                                                                                                                                                                                                             |
+| --------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 3m              | 0                 | /                                                                                                                                                                      | 47.88 sec                                                                                              | /             | 0                  | A table has only one task, so the parameters have no effect on it.                                                                                                                                                                                                                      |
+| 3m              | 10                | tidb_build_stats_concurrency = 2 <br/> tidb_analyze_partition_concurrency = 2                                                                                          | 2 min 17.82 sec                                                                                        | 30 sec        | 23 sec             | 10 partitions can still be handled by this degree of concurrency.                                                                                                                                                                                                                       |
+| 3m              | 100               | <span class="text-red-500" v-mark="{ at: 1, color: 'orange', type: 'underline' }">tidb_build_stats_concurrency = 2</span> <br/> tidb_analyze_partition_concurrency = 2 | <span class="text-red-500" v-mark="{ at: 1, color: 'orange', type: 'circle' }">25 min 47.51 sec</span> | 1min 34 sec   | 6 min 5 sec        | 100 partitions is too slow.                                                                                                                                                                                                                                                             |
+| 3m              | 100               | <span class="text-red-500" v-mark="{ at: 2, color: 'red', type: 'underline' }">tidb_build_stats_concurrency = 15</span> <br/> tidb_analyze_partition_concurrency = 2   | <span class="text-red-500" v-mark="{ at: 2, color: 'red', type: 'circle' }">25 min 46.47 sec</span>    | 1min 34 sec   | 6 min 5 sec        | <span class="text-red-500" v-mark="{ at: 2, color: 'red', type: 'underline' }">Although we have adjusted the concurrency of the scan, since we still have a concurrency of 2 for the save process, it results in a lot of data waiting to be written after the scan is complete.</span> |
+
+</div>
+
+---
+transition: slide-left
+---
+
+# Improve the Analyze
+What can we do?
+
+
+<div class="container">
+ <div class="tracking">
+    <h3>Tracking Document</h3>
+    <p><a href="https://pingcap-cn.feishu.cn/wiki/Be7rw4bSviH9QDknZ49cGYfhn0c">Statistics Project Planning and Implementation</a></p>
+    <p><a href="https://github.com/pingcap/tidb/issues/55043">Statistics Tech Debt</a></p>
+  </div>
+  <br/>
+  <div class="blogs">
+    <h3>Blogs</h3>
+    <p>
+      I started a new series blog post to discuss the Analyze feature improvement.
+    </p>
+      <p><a href="https://pingcap-cn.feishu.cn/wiki/S1zuwQmDwigxhBkDgEVcVbXen4c">NCRMTA1: Surprise analyze-partition-concurrency-quota</a></p>
+      <p><a href="https://pingcap-cn.feishu.cn/docx/I6tRd97W9o5ciux8yZIcRyFOnYe">NCRMTA2: Accelerate Auto-Analyze of Partitioned Tables</a></p>
+  </div>
+</div>
+
 
 ---
 transition: slide-up
