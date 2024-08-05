@@ -1191,52 +1191,6 @@ transition: slide-left
 ---
 
 # Data Structure & Data Flow
-TiDB Perspective - Merge FMSketches
-
-```go{all|3-13|14-18}
-func (s *FMSketch) MergeFMSketch(rs *FMSketch) {
-	...
-  // Pick the bigger mask.
-	if s.mask < rs.mask {
-		s.mask = rs.mask
-		s.hashset.Iter(func(key uint64, _ bool) bool {
-			if (key & s.mask) != 0 {
-        // Remove the key if it is not in the mask range.
-				s.hashset.Delete(key)
-			}
-			return false
-		})
-	}
-  // Merge the hashset.
-	rs.hashset.Iter(func(key uint64, _ bool) bool {
-		s.insertHashValue(key)
-		return false
-	})
-}
-```
-
-<!---
-
-Let’s break down the merging process for the FMSketch data structure:
-
-If we take a closer look at the FMSketch data structure, we’ll see that the MergeFMSketch function is used to combine two FMSketches.
-
-Here’s how it works:
-
-1. The function starts by picking the larger mask.
-2. It then goes through the hashset and removes any keys that aren’t within the mask range.
-3. Finally, it merges the hashset from the sub-FMSketch into the main FMSketch.
-
-The concept is similar to the original FMSketch algorithm: keep the larger mask and merge the hashsets accordingly.
-
--->
-
-
----
-transition: slide-left
----
-
-# Data Structure & Data Flow
 TiDB Perspective - Build TopN and Histogram
 
 ```plantuml
