@@ -1,6 +1,9 @@
 <template>
   <div class="flex flex-col items-center space-y-4 text-black">
     <h1 class="text-2xl font-bold">Distinct Sampling</h1>
+    <p>
+      <span class="mb-1 mx-2"><strong>Sample Size:</strong> {{ 8 }}</span>
+    </p>
     <div class="flex flex-wrap justify-center gap-2">
       <div v-for="(item, index) in dataset" :key="index" class="flex flex-col items-center">
         <div :class="['p-2 border rounded', currentIndex >= index ? 'bg-blue-200' : 'bg-gray-200']">{{ item }}</div>
@@ -12,7 +15,7 @@
     <button @click="processNext" class="px-4 py-2 border rounded bg-blue-500 text-white">Process Next</button>
     <div class="mt-4 text-xl text-black">
       <p>Die Level: {{ mask }}</p>
-      <p>Hash Set Size: {{ hashSet.size }}</p>
+      <p>Current Sample Size: {{ hashSet.size }}</p>
       <p>Estimated NDV: {{ estimatedNDV }}</p>
     </div>
   </div>
