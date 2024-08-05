@@ -1,6 +1,6 @@
 ---
-theme: default
 background: "#white"
+theme: seriph
 class: text-center
 highlighter: shiki
 lineNumbers: false
