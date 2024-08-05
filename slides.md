@@ -122,29 +122,6 @@ layout: center
 
 # Analyze Overview
 
----
-transition: slide-left
-layout: default
----
-
-# Analyze Statement
-
-<img src="/analyze.svg" />
-
-<!---
-
-Alright, let’s break down the basic syntax of the Analyze statement.
-
-First off, you can analyze different parts of your database: tables, partitions, columns, and indexes.
-
-You also have the option to focus only on predicate columns. This means it will analyze the columns used in the where clause of your queries.
-
-Plus, you can tweak a few settings, like specifying the number of top N items or the number of buckets.
-
-Now, let’s dive into some examples to see how it works.
-
--->
-
 
 ---
 transition: slide-left
