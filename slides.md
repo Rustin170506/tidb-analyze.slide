@@ -1338,7 +1338,7 @@ transition: slide-left
 </div>
 
 ---
-transition: slide-left
+transition: slide-up
 ---
 
 # Improve the Analyze
