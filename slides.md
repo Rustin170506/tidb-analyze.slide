@@ -389,7 +389,7 @@ Histogram Bucket
 - Repeats: The number of repeated values at the upper bound.
 - Lower Bound: The lower bound of the bucket.
 - Upper Bound: The upper bound of the bucket.
-- NDV: The number of distinct values in the bucket.
+- NDV: The number of distinct values in the bucket.(**Deprecated, always 0**)
 
 ````md magic-move
 ```json
