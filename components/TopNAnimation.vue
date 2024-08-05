@@ -1,6 +1,10 @@
 <template>
   <div class="flex flex-col items-center w-full max-w-4xl mx-auto">
     <h1 class="text-2xl font-bold">Build TopN</h1>
+    <p>
+      <span class="mb-1 mx-2"><strong>Count:</strong> {{ 200 }}</span>
+      <span class="mb-1 mx-2"><strong>Sample Length:</strong> {{ originalSamples.length }}</span>
+    </p>
     <div class="flex justify-between w-full mb-8">
       <div class="w-1/2 pr-4">
         <h3 class="text-lg font-bold mb-2">Samples</h3>
@@ -38,7 +42,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 
-const originalSamples = ['B', 'A', 'C', 'B', 'D', 'A', 'B', 'E', 'D']
+const originalSamples = [104, 23, 45, 164, 57, 34, 212, 92, 69, 176, 116, 140, 116, 128, 80, 152, 188, 224, 13, 200, 200, 5, 5]
 const numTopN = 3
 
 const currentIndex = ref(-1)
@@ -50,7 +54,7 @@ const isSorted = ref(false)
 
 const sortedSamples = computed(() => {
   if (isSorted.value) {
-    return [...originalSamples].sort()
+    return [...originalSamples].sort((a, b) => a - b)
   }
   return originalSamples
 })

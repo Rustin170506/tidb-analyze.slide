@@ -11,7 +11,8 @@
 
         <div class="w-full text-center flex flex-col items-center">
             <p>
-                <span class="mb-1 mx-2"><strong>Sample Factor:</strong> {{ sampleFactor }}</span>
+                <span class="mb-1 mx-2"><strong>Sample Factor:</strong> {{ sampleFactor.toFixed(1) }}</span>
+                <span class="mb-1 mx-2"><strong>NDV Factor:</strong> {{ ndvFactor.toFixed(1) }}</span>
                 <span class="mb-1 mx-2"><strong>Per Bucket:</strong> {{ valuesPerBucket.toFixed(1) }}</span>
                 <span class="mb-1 mx-2"><strong>Current Sample:</strong> {{ currentSample ? currentSample :
                     'N/A' }}</span>
@@ -42,7 +43,7 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
-const samples = [5, 13, 23, 34, 45, 57, 69, 80, 92, 104, 116, 128, 140, 152, 164, 176, 188, 200, 212, 224]
+const samples = [13, 23, 34, 45, 57, 69, 80, 92, 104, 128, 140, 152, 164, 176, 188, 212, 224]
 const numBuckets = 3
 const count = 200
 const ndv = 100
