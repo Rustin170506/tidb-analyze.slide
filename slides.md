@@ -46,9 +46,9 @@ RUSTIN LIU
 
 <!--
 Thanks for joining me today. I'm Rustin, today I'm gonna talk about TiDB Analyze Feature.
-TiDB Analyze is a feature that collects statistics for the optimizer to generate better query plans.
-All my examples and algorithms are based on TiDB v8.1.0.
-If you want to take a look at the source code, you need to make sure you are on the v8.1.0 tag.
+It's a feature that collects statistics for the optimizer to generate better query plans based on the cost model.
+All my examples and algorithms are based on TiDB v8.1.
+If you want to take a look at the source code, you need to make sure you are on the v8.1 tag.
 Alright, let's get started.
 -->
 
@@ -81,7 +81,7 @@ Let me introduce myself.
 
 I just transferred to the optimizer team about a year ago.
 
-I'm also very active in the Rust community. If you have any questions about the Rust toolchain, feel free to ask me.
+I'm also very active in the Rust community. If you have any questions about the Rust toolchain, feel free to reach out to me.
 We can discuss it together.
 
 -->
@@ -114,13 +114,13 @@ layout: center
 
 This is today's agenda.
 
-We will start with an overview of the Analyze feature with some examples.
+We'll start with an overview of the Analyze feature with some examples.
 
 Then we will dive into the data structure and data flow overview.
 We will look at the data structure and data flow from both the TiKV and TiDB perspectives.
 Finally, we will have a Q&A session. If you have any questions, feel free to send it to the chat.
 
-And I will try to answer them in the Q&A session.
+And I will try to answer them in the Q&A session. If I can't answer them, maybe kunqin, yiding and other team members can help me.
 
 -->
 
@@ -174,7 +174,7 @@ layout: center
 
 <!--
 
-After executing the Analyze statement, we’ll generate some statistics from the data.
+After executing the Analyze statement, we’ll generate some statistics from the TiKV.
 
 In this section, we’ll examine the data structure used to store these statistics.
 
@@ -218,7 +218,7 @@ Next, we’ll insert 2000 rows into the table.
 
 Notice that we insert the same value twice for every even number.
 
-Keep this example in mind, as we’ll use it later to demonstrate the data structure.
+Keep this example in mind, because we’ll use it later to demonstrate the data structure.
 
 -->
 
@@ -257,7 +257,7 @@ Let’s look at a simple query that selects rows where column A equals 100.
 
 This is a basic example of column selectivity, using a simple equality condition. The optimizer estimates that there are 2 rows that match this condition.
 
-The optimizer uses the TopN data structure to make this estimate.
+It uses the TopN data structure to make this estimate.
 
 The value 100 is in the TopN data structure, because it’s an even number and we inserted it twice.
 
@@ -423,17 +423,18 @@ Histogram Bucket
 
 Let’s take a closer look at the histogram bucket.
 
-Bucket ID: Just the ID of the bucket.
+Just the ID of the bucket.
 
-Lower Bound: The lower bound of the bucket.
+The lower bound of the bucket.
 
-Upper Bound: The upper bound of the bucket.
+The upper bound of the bucket.
 
-Count: The number of values in the bucket. This is a cumulative count, including all values up to the bucket. But when we store the data, we only store the count of the bucket.
+The number of values in the bucket. This is a cumulative count, including all values up to the bucket. But when we store the data, we only store the count of the bucket.
+During we load the histogram, we will calculate the cumulative count.
 
-Repeats: The number of repeated values at the upper bound.
+The number of repeated values at the upper bound.
 
-NDV (Number of Distinct Values): The number of distinct values in the bucket. But this field is deprecated and always 0. Because we use the sample data to build the histogram, so we don't really know the accurate NDV.
+ The number of distinct values in the bucket. But this field is deprecated and always 0. Because we use the sample data to build the histogram, so we don't really know the accurate NDV.
 
 If we break down the count and repeats, we can see the individual values within the bucket.
 
@@ -679,17 +680,12 @@ Algorithm Principles
    - Use the maximum trailing zero count **R** to estimate the cardinality of the set with the formula $2^R$.
 
 <!--
-
-To implement the FMSketch algorithm, we follow these principles:
-
-The FMSketch algorithm is based on three main principles:
+The FMSketch algorithm is based on three main steps:
 
 1. We map each element of the set to an integer using the hash function h(x).
 2. For each hash value, we count the number of trailing zeros in its binary representation. We record the maximum count R.
 3. To estimate the cardinality of the set, we use the maximum trailing zero count R with the formula 2 to the power of R.
-
 -->
-
 
 ---
 transition: slide-left
@@ -716,7 +712,6 @@ transition: slide-left
 <BadFMSketch/>
 
 <!--
-
 This time, we have an outlier in the set.
 
 The hash value of the outlier is jj, which has 6 trailing zeros.
@@ -729,12 +724,10 @@ This is an example where the FMSketch algorithm doesn’t provide an accurate es
 
 To address this issue, we need to use multiple hash functions and take the median estimate.
 
-However, using multiple hash functions increases the const. Because we need to scan the data multiple times and calculate the hash value multiple times.
+However, using multiple hash functions increases the cost. Because we need to scan the data multiple times and calculate the hash value multiple times.
 
 So, we chose another algorithm called Distinct Sampling to solve this problem.
-
 -->
-
 
 ---
 transition: slide-left
@@ -769,18 +762,18 @@ to Distinct Values Queries and Event Reports"](https://www.vldb.org/conf/2001/P5
 </style>
 
 <!--
-
 To address the limitations of the FMSketch algorithm, we use a new algorithm called Distinct Sampling.
 
 The core principles of Distinct Sampling are as follows:
 
 Use a hash function that maps each distinct value to a random die-level. This is very similar to the FMSketch algorithm.
+
 Maintain a sample S of distinct values and a current level L.
 Keep values in S only if their die-level is greater than or equal to L.
+
 Estimate the number of distinct items as the size of the sample S multiplied by 2 to the power of L.
 
 We use a hash function to map each distinct value to a random value and check its binary representation to determine the die-level. If there are no trailing zeros, the die-level is 0. If there is one trailing zero, the die-level is 1, and so on.
-
 -->
 
 ---
@@ -802,7 +795,6 @@ Algorithm Steps
    - If $|S| > k$, increment l and remove items with die-level < l.
 
 <!--
-
 The Distinct Sampling algorithm consists of three main steps:
 
 Start with l = 0 and an empty sample S.
@@ -810,8 +802,13 @@ Start with l = 0 and an empty sample S.
 For each row r with the target attribute value v:
 Compute the die-level using the hash function h(v).
 If the die-level is greater than or equal to l, add r to the sample S.
-If the size of the sample S is greater than k, increment L and remove items with a die-level less than L. This is the sampling part of the algorithm. We only keep the items with a die-level greater than or equal to L. That means for the lower die-level, we have enough samples to prove that the values follow the current pattern. And bigger sample size means we can get a more accurate estimation. This is the key point why we can solve the problem of the FMSketch.
 
+If the size of the sample S is greater than k, increment L and remove items with a die-level less than L. 
+
+This is the sampling part of the algorithm. We only keep the items with a die-level greater than or equal to L. 
+
+That means for the lower die-level, we have enough samples to prove that the values follow this pattern. 
+So, a bigger sample size means we can get a more accurate estimation. This is the key point in solving the problem of FMSketch.
 -->
 
 ---
@@ -821,17 +818,14 @@ transition: slide-left
 <FMSketchDemo/>
 
 <!--
-
 This is a more detailed example of the Distinct Sampling algorithm.
 
 Every time you click the “Next” button, we will process a new row.
 
-The sample size is set to 8, so we will increment the die-level when the sample size exceeds 8.
+The sample size is set to 8, so we will increment the die-level when the sample size is bigger than 8.
 
 As you can see, even with an outlier in the set, the estimated cardinality remains accurate.
-
 -->
-
 
 ---
 transition: slide-left
@@ -876,15 +870,14 @@ Mathematical Assumptions
    - Each sample selection follows a Bernoulli distribution with parameter $p$.
 
 <!--
-
 The Bernoulli Sampling algorithm is the method used to sample data.
 
 The algorithm is based on the following mathematical assumptions:
 
 Each sample in the data set is selected independently from other samples.
 Each sample is selected with a fixed probability p (0 ≤ p ≤ 1), uniformly across the entire data set.
-Each sample selection follows a Bernoulli distribution with parameter p.
 
+Each sample selection follows a Bernoulli distribution with parameter p.
 -->
 
 ---
@@ -901,14 +894,14 @@ Algorithm Principles
    - For each sample in the data set, generate a random number and compare it to $p$. If the random number is less than $p$, include the sample in the resulting subset.
 
 <!--
-
 The Bernoulli Sampling algorithm is based on the following septs:
 
 Define a sampling probability p for selecting each sample.
-For each sample in the data set, generate a random number and compare it to p. If the random number is less than p, include the sample in the resulting subset.
 
+For each sample in the data set, generate a random number and compare it to p. 
+
+If the random number is less than p, include the sample in the resulting subset.
 -->
-
 
 ---
 transition: slide-left
@@ -1051,7 +1044,6 @@ AE -> AE: update statistics cache
 <div v-click class="absolute top-40 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_build_stats_concurrency </div>
 
 <!--
-
 This is the data flow for analyzing tables or partitions concurrently in TiDB.
 
 We analyze tables or partitions concurrently to improve the performance of the Analyze feature. For partitioned tables, we may have many partitions, and analyzing them concurrently can significantly reduce the overall time.
@@ -1059,14 +1051,13 @@ We analyze tables or partitions concurrently to improve the performance of the A
 Here’s how it works:
 
 1. Create tasks for each table or partition. It just a normal query so we use the same framework to build the plan.
-2. Begin the tasks and wait for their completion.
-3. Once the analysis is done, update the statistics in the system tables.
+2. Start the tasks for each table and wait for their completion.
+3. Once the analysis is done, update the statistics to the system tables in the result handler.
 4. For partitioned tables, merge the statistics from each partition to get the global statistics.
 5. Load the latest statistics into the cache to ensure the query optimizer uses the most up-to-date statistics.
 
 
-The concurrency of the this part is controlled by the tidb_build_stats_concurrency variable. By default, the concurrency is set to 2.
-
+The concurrency of the this part is controlled by the tidb_build_stats_concurrency variable. By default, the concurrency is set to  2
 -->
 
 ---
@@ -1096,18 +1087,16 @@ AE -> AE: build and merge statistics \nand return the analyze result
 <div v-click class="absolute top-40 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_analyze_distsql_scan_concurrency </div>
 
 <!--
-
 Let’s dive into the details of the data flow for scanning regions concurrently in TiDB.
 
-When we analyze a table, we need to scan all the regions in the table to collect statistics. To improve the performance, we scan regions concurrently. Here’s how it works:
+When we analyze a table, we need to scan all the regions of the table to collect statistics. To improve the performance, we scan regions concurrently. Here’s how it works:
 
-1. Open the Analyze Executor: Initialize the analyze process.
-2. Start the Coprocessor Workers: Begin the tasks and wait for their completion.
-3. Scan Regions: Send an analyze gRPC request to each region to scan and collect statistics.
+1. Open the Analyze Executor and Initialize the analyze process.
+2. Start the Coprocessor Workers: and Start the tasks for different ranges and wait for their completion.
+3. Send an analyze gRPC request to each region to scan and collect statistics.
 4. Once the analysis is done, build and merge the statistics and return the analyze result.
 
 To control the concurrency of scanning regions, you can adjust the tidb_analyze_distsql_scan_concurrency variable. By default, the concurrency is set to 4.
-
 -->
 
 ---
@@ -1136,18 +1125,16 @@ AE -> AE: build the TopN and Histogram \nand return analyze result
 <div v-click class="absolute top-40 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_build_sampling_stats_concurrency </div>
 
 <!--
-
 After receiving all the FMSketches and sample data from TiKV, we need to merge them in TiDB.
 To enhance the performance, we merge the FMSketches and sample data concurrently.
 
 Here’s how it works:
-1. Create a Root Row Sample Collector: Initialize the root row sample collector.
-2. Start the Workers: Begin the tasks and wait for their completion.
-3. Merge FMSketches and Sample Data: Merge the FMSketches and sample data into the root row sample collector.
+1.  Initialize the root row sample collector.
+2. Start the tasks and wait for their completion.
+3. In each worker,  it merges the FMSketches and sample data into the root row sample collector.
 4. Once the merging is complete, build the TopN and Histogram, and return the analyze result.
 
 To control the concurrency of merging FMSketches and sample data, you can adjust the tidb_build_sampling_stats_concurrency variable. By default, the concurrency is set to 2.
-
 -->
 
 ---
@@ -1174,21 +1161,18 @@ AE -> AE: return the analyze result
 <div v-click class="absolute top-30 right-0 transform rotate-30 bg-red-500 text-white font-bold py-1 px-1 rounded-lg"> tidb_build_sampling_stats_concurrency </div>
 
 <!--
-
 After merging the FMSketches and sample data, our next step is to build the TopN and Histogram data structures in TiDB.
 
-To enhance the performance, again, we construct the TopN and Histogram concurrently by column or index. Here’s the process:
+To enhance the performance, again, we construct the TopN and Histogram concurrently on a column or index basis.  Here’s the process:
 
-1. Sort All Samples: First, we sort all the samples collected in the root row sample collector.
-2. Send Build Tasks: Next, we dispatch build tasks for each column or index.
+1.  First, we sort all the samples collected in the root row sample collector.
+2.  Next, we dispatch build tasks for each column or index.
 3.  We then initiate the builder workers to start these tasks and wait for their completion.
-4. For each column or index, we build the TopN and Histogram. Do some calculation and build the data structure.
+4. For each column or index, we build the TopN and Histogram.  Do some calculation and build the data structure.
 5. Finally, once the building is complete, we return the analyze result.
 
 To manage the concurrency of building the TopN and Histogram, you can adjust the tidb_build_sampling_stats_concurrency variable. By default, it’s set to 2.
-
 -->
-
 
 ---
 transition: slide-left
@@ -1314,8 +1298,7 @@ What can we do?
 </div>
 
 <!--
-
-The Analyze feature is a critical part of the TiDB query optimizer. It is the only input for the query optimizer to generate the best query plan right now.
+The Analyze feature is a critical part of the TiDB query optimizer. It is the only input for the query optimizer to generate the better query plan right now.
 
 As you can see, this module is very complex and have a lot of issues.
 
@@ -1324,9 +1307,7 @@ If you are interested in the Analyze feature, you can track the progress of the 
 And I just started a new series of blog posts to discuss the Analyze feature improvement. Hope we can make it better in the future.
 
 Aright! That’s all for my talk today. Thank you for listening. Do you have any questions?
-
 -->
-
 
 ---
 transition: slide-up
