@@ -17,6 +17,7 @@ transition: slide-left
 title: TiDB Analyze
 colorSchema: light
 mdc: true
+download: true
 ---
 
 # TiDB Analyze
@@ -803,11 +804,11 @@ For each row r with the target attribute value v:
 Compute the die-level using the hash function h(v).
 If the die-level is greater than or equal to l, add r to the sample S.
 
-If the size of the sample S is greater than k, increment L and remove items with a die-level less than L. 
+If the size of the sample S is greater than k, increment L and remove items with a die-level less than L.
 
-This is the sampling part of the algorithm. We only keep the items with a die-level greater than or equal to L. 
+This is the sampling part of the algorithm. We only keep the items with a die-level greater than or equal to L.
 
-That means for the lower die-level, we have enough samples to prove that the values follow this pattern. 
+That means for the lower die-level, we have enough samples to prove that the values follow this pattern.
 So, a bigger sample size means we can get a more accurate estimation. This is the key point in solving the problem of FMSketch.
 -->
 
@@ -898,7 +899,7 @@ The Bernoulli Sampling algorithm is based on the following septs:
 
 Define a sampling probability p for selecting each sample.
 
-For each sample in the data set, generate a random number and compare it to p. 
+For each sample in the data set, generate a random number and compare it to p.
 
 If the random number is less than p, include the sample in the resulting subset.
 -->
