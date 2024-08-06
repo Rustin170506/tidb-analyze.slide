@@ -12,7 +12,6 @@
         <div class="w-full text-center flex flex-col items-center">
             <p>
                 <span class="mb-1 mx-2"><strong>Sample Factor:</strong> {{ sampleFactor.toFixed(1) }}</span>
-                <span class="mb-1 mx-2"><strong>NDV Factor:</strong> {{ ndvFactor.toFixed(1) }}</span>
                 <span class="mb-1 mx-2"><strong>Per Bucket:</strong> {{ valuesPerBucket.toFixed(1) }}</span>
                 <span class="mb-1 mx-2"><strong>Current Sample:</strong> {{ currentSample ? currentSample :
                     'N/A' }}</span>
