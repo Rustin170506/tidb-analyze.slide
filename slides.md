@@ -67,9 +67,9 @@ Tokio Console Maintainer.<br/>
 
 <div my-10 grid="~ cols-[40px_1fr] gap-y4" items-center justify-center>
   <div i-ri-github-line op50 ma text-xl/>
-  <div><a href="https://github.com/hi-rustin" target="_blank">hi-rustin</a></div>
+  <div><a href="https://github.com/Rustin170506" target="_blank">Rustin170506</a></div>
   <div i-ri-firefox-line op50 ma text-xl/>
-  <div><a href="https://hi-rustin.rs" target="_blank">hi-rustin.rs</a></div>
+  <div><a href="https://Rustin170506.rs" target="_blank">Rustin170506.rs</a></div>
 </div>
 
 <img src="https://avatars.githubusercontent.com/u/29879298?v=4" rounded-full w-30 abs-tr mt-22 mr-22/>
