@@ -23,16 +23,15 @@ importers:
       chart.js:
         specifier: ^4.4.3
         version: 4.4.3
+      playwright-chromium:
+        specifier: ^1.46.0
+        version: 1.46.0
       vue:
         specifier: ^3.4.33
         version: 3.4.33(typescript@5.5.3)
       vue-chartjs:
         specifier: ^5.3.1
         version: 5.3.1(chart.js@4.4.3)(vue@3.4.33(typescript@5.5.3))
-    devDependencies:
-      playwright-chromium:
-        specifier: ^1.46.0
-        version: 1.46.0
 
 packages:
 
