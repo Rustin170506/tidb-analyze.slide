@@ -1283,7 +1283,6 @@ What can we do?
 <div class="container">
  <div class="tracking">
     <h3>Tracking Document</h3>
-    <p><a href="https://pingcap-cn.feishu.cn/wiki/Be7rw4bSviH9QDknZ49cGYfhn0c">Statistics Project Planning and Implementation</a></p>
     <p><a href="https://github.com/pingcap/tidb/issues/55043">Statistics Tech Debt</a></p>
   </div>
   <br/>
