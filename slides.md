@@ -17,7 +17,6 @@ transition: slide-left
 title: TiDB Analyze
 colorSchema: light
 mdc: true
-download: true
 ---
 
 # TiDB Analyze
